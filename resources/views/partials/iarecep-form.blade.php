@@ -87,8 +87,10 @@ document.getElementById('iarecep-form').addEventListener('submit', async functio
         const targetWrapper = mode === 'vocal' ? 'iarecep-vocal-wrapper' : 'iarecep-text-wrapper';
         document.getElementById(targetWrapper).classList.remove('hidden');
         document.getElementById('iarecep-satisfaction-wrapper').classList.remove('hidden');
+document.getElementById('iarecep-satisfaction-wrapper').classList.remove('hidden');
+document.getElementById('iarecep-calendar-wrapper').classList.remove('hidden'); // ← ajouter cette ligne
 
-        window.dispatchEvent(new CustomEvent('iarecep:started', { detail: { welcome: data.welcome, mode } }));
+window.dispatchEvent(new CustomEvent('iarecep:started', { detail: { welcome: data.welcome, mode } }));
     } catch (err) {
         errorEl.textContent = err.message;
         errorEl.classList.remove('hidden');

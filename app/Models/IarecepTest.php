@@ -21,4 +21,11 @@ class IarecepTest extends Model
     {
         return $this->status === 'in_progress';
     }
+
+    // app/Models/IarecepTest.php — à ajouter dans la classe
+
+    public function appointments()
+    {
+        return $this->hasMany(IarecepAppointment::class);
+    }
 }

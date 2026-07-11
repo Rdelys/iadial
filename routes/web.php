@@ -11,3 +11,5 @@ Route::post('/essai-gratuit', [IarecepController::class, 'store'])->name('iarece
 Route::post('/essai-gratuit/chat', [IarecepController::class, 'chat'])->name('iarecep.chat');
 Route::post('/essai-gratuit/close', [IarecepController::class, 'close'])->name('iarecep.close');
 Route::post('/essai-gratuit/demande', [IarecepController::class, 'requestDemo'])->name('iarecep.demande');
+Route::get('/essai-gratuit/appointments', [IarecepController::class, 'appointmentsIndex'])->name('iarecep.appointments.index');
+Route::post('/essai-gratuit/appointments', [IarecepController::class, 'appointmentsStore'])->name('iarecep.appointments.store');

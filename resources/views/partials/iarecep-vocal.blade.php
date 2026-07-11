@@ -49,37 +49,42 @@
     }
 
     async function sendMessage(message) {
-        log('user', message);
-        statusEl.textContent = "La réceptionniste réfléchit...";
+    log('user', message);
+    statusEl.textContent = "La réceptionniste réfléchit...";
 
-        try {
-            const res = await fetch(window.IARECEP.routes.chat, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': window.IARECEP.csrf,
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ token: window.IARECEP.token, message }),
-            });
-            const data = await res.json();
+    try {
+        const res = await fetch(window.IARECEP.routes.chat, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': window.IARECEP.csrf,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ token: window.IARECEP.token, message }),
+        });
+        const data = await res.json();
 
-            if (!res.ok) {
-                errorEl.textContent = data.error || "Une erreur est survenue.";
-                errorEl.classList.remove('hidden');
-                statusEl.textContent = "Appuyez pour parler";
-                return;
-            }
-
-            log('assistant', data.reply);
-            speak(data.reply);
-            statusEl.textContent = "Appuyez pour parler";
-        } catch (e) {
-            errorEl.textContent = "Connexion impossible. Réessayez.";
+        if (!res.ok) {
+            errorEl.textContent = data.error || "Une erreur est survenue.";
             errorEl.classList.remove('hidden');
             statusEl.textContent = "Appuyez pour parler";
+            return;
         }
+
+        log('assistant', data.reply);
+        speak(data.reply);
+        statusEl.textContent = "Appuyez pour parler";
+
+        if (data.appointment) {
+            window.IARECEP.calendar?.addAppointment(data.appointment);
+        }
+        window.IARECEP.calendar?.refresh();
+    } catch (e) {
+        errorEl.textContent = "Connexion impossible. Réessayez.";
+        errorEl.classList.remove('hidden');
+        statusEl.textContent = "Appuyez pour parler";
     }
+}
 
     if (recognition) {
         btn.addEventListener('click', () => {

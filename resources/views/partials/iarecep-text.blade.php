@@ -38,34 +38,44 @@
     }
 
     async function sendMessage(message) {
-        addBubble('user', message);
-        errorEl.classList.add('hidden');
+    addBubble('user', message);
+    errorEl.classList.add('hidden');
 
-        try {
-            const res = await fetch(window.IARECEP.routes.chat, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': window.IARECEP.csrf,
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ token: window.IARECEP.token, message }),
-            });
-            const data = await res.json();
+    try {
+        const res = await fetch(window.IARECEP.routes.chat, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': window.IARECEP.csrf,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ token: window.IARECEP.token, message }),
+        });
+        const data = await res.json();
 
-            if (!res.ok) {
-                errorEl.textContent = data.error || "Une erreur est survenue.";
-                errorEl.classList.remove('hidden');
-                return;
-            }
-
-            addBubble('assistant', data.reply);
-            window.dispatchEvent(new CustomEvent('iarecep:reply', { detail: { reply: data.reply } }));
-        } catch (e) {
-            errorEl.textContent = "Connexion impossible. Réessayez.";
+        if (!res.ok) {
+            errorEl.textContent = data.error || "Une erreur est survenue.";
             errorEl.classList.remove('hidden');
+            return;
         }
+
+        addBubble('assistant', data.reply);
+
+        // Mise à jour optimiste immédiate...
+        if (data.appointment) {
+            window.IARECEP.calendar?.addAppointment(data.appointment);
+        }
+        // ...puis resynchro serveur systématique pour garantir la cohérence
+        // avec la base (corrige les cas où l'IA réserve sans que le champ
+        // "appointment" soit correctement remonté au premier essai).
+        window.IARECEP.calendar?.refresh();
+
+        window.dispatchEvent(new CustomEvent('iarecep:reply', { detail: { reply: data.reply, appointment: data.appointment } }));
+    } catch (e) {
+        errorEl.textContent = "Connexion impossible. Réessayez.";
+        errorEl.classList.remove('hidden');
     }
+}
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();
