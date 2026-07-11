@@ -1,13 +1,10 @@
 <?php
 
-use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\IarecepController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes - Site vitrine ÉnergiePlus
-|--------------------------------------------------------------------------
-*/
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/', [QuoteController::class, 'index'])->name('home');
-Route::post('/demande-devis', [QuoteController::class, 'store'])->name('quote.store');
+Route::get('/essai-gratuit', [IarecepController::class, 'index'])->name('iarecep');
+Route::post('/essai-gratuit', [IarecepController::class, 'store'])->name('iarecep.store');
