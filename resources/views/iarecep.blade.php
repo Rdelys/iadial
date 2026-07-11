@@ -57,9 +57,9 @@
     <div id="iarecep-vocal-wrapper" class="hidden mt-10">
         @include('partials.iarecep-vocal')
     </div>
-<div id="iarecep-calendar-wrapper" class="hidden mt-8">
+<!-- <div id="iarecep-calendar-wrapper" class="hidden mt-8">
     @include('partials.iarecep-calendar')
-</div>
+</div> -->
     {{-- Formulaire de satisfaction / contact --}}
     <div id="iarecep-satisfaction-wrapper" class="hidden mt-8">
         @include('partials.iarecep-satisfaction')
