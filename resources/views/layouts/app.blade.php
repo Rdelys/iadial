@@ -181,7 +181,7 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('iarecep') }}" target="_blank" rel="noopener"
+                <a href="{{ route('iarecep.index') }}" target="_blank" rel="noopener"
                    class="btn-shine hidden sm:inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500
                        px-5 py-2.5 text-sm font-medium text-black shadow-[0_0_20px_rgba(56,189,248,0.35)]
                        hover:shadow-[0_0_30px_rgba(56,189,248,0.55)] transition-shadow">
@@ -204,7 +204,7 @@
             <a href="#demo" class="block hover:text-white">Démo</a>
             <a href="#faq" class="block hover:text-white">FAQ</a>
             <a href="#contact" class="block hover:text-white">Contact</a>
-            <a href="{{ route('iarecep') }}" target="_blank" rel="noopener"
+            <a href="{{ route('iarecep.index') }}" target="_blank" rel="noopener"
                class="btn-shine block text-center rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500 px-5 py-2.5 font-medium text-black mt-2">
                 Essayer gratuitement
             </a>

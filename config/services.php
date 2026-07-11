@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'iarecep_ai' => [
+        'key' => env('IARECEP_AI_KEY'),
+        'model' => env('IARECEP_AI_MODEL', 'claude-sonnet-4-6'),
+    ],
 
 ];

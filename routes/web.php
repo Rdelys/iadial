@@ -6,5 +6,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/essai-gratuit', [IarecepController::class, 'index'])->name('iarecep');
+Route::get('/essai-gratuit', [IarecepController::class, 'index'])->name('iarecep.index');
 Route::post('/essai-gratuit', [IarecepController::class, 'store'])->name('iarecep.store');
+Route::post('/essai-gratuit/chat', [IarecepController::class, 'chat'])->name('iarecep.chat');
+Route::post('/essai-gratuit/close', [IarecepController::class, 'close'])->name('iarecep.close');
+Route::post('/essai-gratuit/demande', [IarecepController::class, 'requestDemo'])->name('iarecep.demande');
