@@ -196,7 +196,7 @@
         <div class="text-center md:text-left">
             <h2 class="font-display text-xl sm:text-2xl md:text-3xl font-semibold">Prêt à automatiser votre accueil dès maintenant ?</h2>
             <p class="mt-2 text-white/50 text-sm sm:text-base">Testez gratuitement notre réceptionniste IA sans engagement.</p>
-            <a href="{{ route('iarecep') }}" target="_blank" rel="noopener"
+            <a href="{{ route('iarecep.index') }}" target="_blank" rel="noopener"
                class="btn-shine mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500
                 px-6 py-3.5 text-sm font-semibold text-black shadow-[0_0_20px_rgba(56,189,248,0.35)]
                 hover:shadow-[0_0_30px_rgba(56,189,248,0.55)] transition-shadow">

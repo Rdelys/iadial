@@ -1,9 +1,14 @@
+{{-- resources/views/iarecep.blade.php --}}
 @extends('layouts.app')
 
 @section('title', "Essai gratuit - IADial")
 
 @section('content')
-<section class="max-w-2xl mx-auto px-4 sm:px-6 pt-20 pb-28 text-center">
+<section class="max-w-2xl mx-auto px-4 sm:px-6 pt-20 pb-28 text-center"
+    id="iarecep-app"
+    data-token="{{ $token }}"
+    data-existing="{{ $existingTest ? '1' : '0' }}"
+    data-existing-mode="{{ $existingTest->mode ?? 'text' }}">
 
     <div class="hero-in-1">
         <span class="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-1.5 text-xs text-sky-300 mb-8">
@@ -26,63 +31,97 @@
         Renseignez les informations de votre entreprise ci-dessous. Aucune carte bancaire requise, vous pouvez annuler à tout moment.
     </p>
 
-    {{-- Formulaire --}}
-    <form action="{{ route('iarecep.store') }}" method="POST"
-        class="hero-in-4 mt-10 text-left rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6 sm:p-8 space-y-5">
-        @csrf
-
-        <div>
-            <label class="block text-sm text-white/60 mb-2">Nom de l'entreprise</label>
-            <input type="text" name="company_name" required placeholder="Ex : Cabinet Dupont"
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400/50 transition">
-        </div>
-
-        <div class="grid sm:grid-cols-2 gap-5">
-            <div>
-                <label class="block text-sm text-white/60 mb-2">Votre nom</label>
-                <input type="text" name="full_name" required placeholder="Jean Dupont"
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400/50 transition">
-            </div>
-            <div>
-                <label class="block text-sm text-white/60 mb-2">Email professionnel</label>
-                <input type="email" name="email" required placeholder="jean@entreprise.com"
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400/50 transition">
-            </div>
-        </div>
-
-        <div>
-            <label class="block text-sm text-white/60 mb-2">Secteur d'activité</label>
-            <select name="sector"
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-400/50 transition">
-                <option class="bg-[#0a0a0c]">Cabinet médical / dentaire</option>
-                <option class="bg-[#0a0a0c]">Salon de beauté / coiffure</option>
-                <option class="bg-[#0a0a0c]">Immobilier</option>
-                <option class="bg-[#0a0a0c]">Restauration</option>
-                <option class="bg-[#0a0a0c]">Autre</option>
-            </select>
-        </div>
-
-        <button type="submit"
-            class="btn-shine w-full inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500
-                px-6 py-3.5 text-sm font-semibold text-black shadow-[0_0_20px_rgba(56,189,248,0.35)]
-                hover:shadow-[0_0_30px_rgba(56,189,248,0.55)] transition-shadow">
-            Créer mon réceptionniste IA
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7M21 12H3"/></svg>
+    {{-- Sélecteur de mode --}}
+    <div class="hero-in-4 mt-8 flex justify-center gap-3" id="iarecep-mode-switch">
+        <button type="button" data-mode="text"
+            class="iarecep-mode-btn is-active rounded-full px-5 py-2 text-sm font-medium border border-sky-400/40 bg-sky-400/10 text-sky-300 transition">
+            💬 Chat texte
         </button>
+        <button type="button" data-mode="vocal"
+            class="iarecep-mode-btn rounded-full px-5 py-2 text-sm font-medium border border-white/10 bg-white/5 text-white/60 transition">
+            🎙️ Chat vocal
+        </button>
+    </div>
 
-        <p class="text-xs text-white/30 text-center flex items-center justify-center gap-2">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-            Vos données sont chiffrées et hébergées en Europe.
-        </p>
-    </form>
+    {{-- Formulaire --}}
+    <div id="iarecep-form-wrapper" class="hero-in-4">
+        @include('partials.iarecep-form')
+    </div>
 
-    <div class="hero-in-5 mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-white/50">
-        @foreach (['Sans engagement', 'Installation rapide', 'Aucune carte bancaire'] as $item)
-            <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                {{ $item }}
-            </span>
-        @endforeach
+    {{-- Chat texte --}}
+    <div id="iarecep-text-wrapper" class="hidden mt-10">
+        @include('partials.iarecep-text')
+    </div>
+
+    {{-- Chat vocal --}}
+    <div id="iarecep-vocal-wrapper" class="hidden mt-10">
+        @include('partials.iarecep-vocal')
+    </div>
+<div id="iarecep-calendar-wrapper" class="hidden mt-8">
+    @include('partials.iarecep-calendar')
+</div>
+    {{-- Formulaire de satisfaction / contact --}}
+    <div id="iarecep-satisfaction-wrapper" class="hidden mt-8">
+        @include('partials.iarecep-satisfaction')
     </div>
 </section>
+
+<script>
+window.IARECEP = {
+    token: @json($token),
+    csrf: document.querySelector('meta[name="csrf-token"]')?.content,
+    routes: {
+        store: @json(route('iarecep.store')),
+        chat: @json(route('iarecep.chat')),
+        close: @json(route('iarecep.close')),
+        demande: @json(route('iarecep.demande')),
+    },
+    existingMessages: @json($existingMessages->map(fn($m) => ['role' => $m->role, 'content' => $m->content])),
+};
+
+(function () {
+    const switchWrap = document.getElementById('iarecep-mode-switch');
+    const buttons = switchWrap.querySelectorAll('.iarecep-mode-btn');
+    let currentMode = 'text';
+
+    function setMode(mode) {
+        currentMode = mode;
+        buttons.forEach(b => {
+            const active = b.dataset.mode === mode;
+            b.classList.toggle('is-active', active);
+            b.classList.toggle('border-sky-400/40', active);
+            b.classList.toggle('bg-sky-400/10', active);
+            b.classList.toggle('text-sky-300', active);
+            b.classList.toggle('border-white/10', !active);
+            b.classList.toggle('bg-white/5', !active);
+            b.classList.toggle('text-white/60', !active);
+        });
+        document.getElementById('iarecep-hidden-mode').value = mode;
+    }
+
+    buttons.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+    window.IARECEP.getMode = () => currentMode;
+
+    // Fermeture propre de la session au départ du visiteur.
+    function closeSession() {
+        const token = window.IARECEP.token;
+        if (!token) return;
+        const fd = new FormData();
+        fd.append('token', token);
+        fd.append('_token', window.IARECEP.csrf);
+        navigator.sendBeacon(window.IARECEP.routes.close, fd);
+    }
+    window.addEventListener('pagehide', closeSession);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') closeSession();
+    });
+
+    // Reprise automatique si un test est déjà en cours pour ce token.
+    const app = document.getElementById('iarecep-app');
+    if (app.dataset.existing === '1') {
+        setMode(app.dataset.existingMode);
+        window.IARECEP.resumeExisting?.();
+    }
+})();
+</script>
 @endsection
