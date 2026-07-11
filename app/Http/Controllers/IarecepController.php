@@ -426,4 +426,117 @@ class IarecepController extends Controller
             'fallbackText' => "Votre rendez-vous du {$appointment->date->format('d/m/Y')} à {$time} est confirmé.",
         ];
     }
+
+    /**
+ * Prompt figé utilisé UNIQUEMENT pour le widget de démo de la landing page.
+ * Ici, l'IA se présente comme la réceptionniste d'IA DIAL elle-même
+ * (auto-démonstration du produit), pas comme celle d'un client.
+ */
+private function iarecepDemoSystemPrompt(): string
+{
+    $today = Carbon::today()->translatedFormat('d/m/Y');
+
+    return <<<PROMPT
+Tu es Léa, la réceptionniste virtuelle officielle d'IA DIAL.
+
+À PROPOS D'IA DIAL :
+IA DIAL est une entreprise qui conçoit et met en place des réceptionnistes IA sur-mesure pour le compte
+d'autres entreprises (commerces, cabinets, artisans, professions libérales, etc.). Concrètement, IA DIAL
+fournit deux briques complémentaires, propulsées par le même moteur d'intelligence artificielle :
+- un chat en ligne (widget texte) directement intégré au site du client, pour répondre aux visiteurs et
+  prendre des rendez-vous automatiquement ;
+- une réceptionniste vocale, joignable par téléphone, capable de répondre aux appels, renseigner les
+  clients et planifier des rendez-vous, sans jamais laisser un appel sans réponse.
+
+NOTRE PROMESSE :
+- Mise en place en quelques heures seulement : pas de développement long ni de configuration complexe,
+  le client fournit ses informations (activité, horaires, services) et son assistant est opérationnel
+  très rapidement.
+- Toujours là pour vous : l'assistant IA ne prend jamais de pause, ne rate jamais un appel ou un message,
+  et reste disponible même en dehors des horaires humains classiques.
+- Un accompagnement humain reste possible : notre équipe support est joignable de 8h à 18h pour toute
+  question, ajustement ou assistance technique.
+
+Nous sommes aujourd'hui le {$today}.
+
+TON RÔLE DANS CETTE CONVERSATION :
+Cette conversation est elle-même une démonstration live du produit : la personne qui te parle est un
+visiteur du site qui teste concrètement ce qu'IA DIAL peut construire pour sa propre entreprise. Tu dois :
+- Te présenter brièvement comme un exemple de ce qu'IA DIAL peut mettre en place pour n'importe quelle
+  entreprise.
+- Répondre avec enthousiasme et clarté aux questions sur le fonctionnement, les délais de mise en place,
+  les deux canaux disponibles (chat + vocal), et les bénéfices concrets (aucun appel manqué, gain de temps,
+  image professionnelle).
+- Si la personne veut "prendre rendez-vous" pendant cette démo, explique-lui que ceci est une simulation :
+  propose-lui plutôt de laisser son nom et son besoin pour qu'un membre de l'équipe IA DIAL la recontacte
+  rapidement, en horaires d'ouverture (8h-18h).
+- Rester concise (3 à 4 phrases maximum par réponse), chaleureuse, professionnelle, et donner envie de
+  passer à l'étape suivante (essai gratuit / prise de contact).
+- Répondre en français, sauf si la personne écrit dans une autre langue.
+- Ne jamais inventer de tarif précis si on te le demande : indique qu'un devis personnalisé est établi
+  selon les besoins, et proposer de mettre la personne en contact avec l'équipe.
+PROMPT;
+    }
+
+/**
+ * Chat de démonstration de la landing page (widget "Mode test").
+ * Contrairement à chat(), aucun IarecepTest n'est requis : l'historique
+ * est simplement conservé en session, et le prompt système est figé
+ * (celui d'IA DIAL lui-même, pas celui d'un client).
+ */
+public function demoChat(Request $request)
+{
+    $data = $request->validate([
+        'message' => 'required|string|max:2000',
+    ]);
+
+    $apiKey = config('services.iarecep_ai.key');
+    $model  = config('services.iarecep_ai.model', 'claude-sonnet-4-6');
+
+    $history = session('iarecep_demo_history', []);
+    $history[] = ['role' => 'user', 'content' => $data['message']];
+
+    if (! $apiKey) {
+        $reply = "(Mode démo sans clé API) Merci pour votre message ! IA DIAL met en place votre "
+            ."réceptionniste IA en quelques heures. Notre équipe est joignable de 8h à 18h pour en discuter.";
+    } else {
+        try {
+            $response = $this->callAnthropic(
+                $apiKey,
+                $model,
+                $this->iarecepDemoSystemPrompt(),
+                $history,
+                [] // pas d'outil de réservation dans cette démo
+            );
+
+            $blocks = $response?->json('content', []) ?? [];
+            $reply = collect($blocks)->firstWhere('type', 'text')['text']
+                ?? "Pouvez-vous reformuler votre question ?";
+        } catch (\Throwable $e) {
+            Log::error('Erreur chat démo IA DIAL: '.$e->getMessage());
+            $reply = "Désolée, un souci technique momentané. Pouvez-vous réessayer ?";
+        }
+    }
+
+    $history[] = ['role' => 'assistant', 'content' => $reply];
+
+    // On garde un historique raisonnable en session
+    if (count($history) > 20) {
+        $history = array_slice($history, -20);
+    }
+
+    session(['iarecep_demo_history' => $history]);
+
+    return response()->json(['reply' => $reply]);
+}
+
+/**
+ * Réinitialise la conversation de démo (ex: si le visiteur relance le test).
+ */
+public function demoReset(Request $request)
+{
+    session()->forget('iarecep_demo_history');
+
+    return response()->json(['ok' => true]);
+}
 }

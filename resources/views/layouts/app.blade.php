@@ -6,7 +6,7 @@
     <title>@yield('title', "IADial - Votre réceptionniste IA, toujours à l'écoute")</title>
     <meta name="description" content="IADial répond à vos clients par téléphone et par chat, 24h/24, grâce à l'intelligence artificielle.">
     <link rel="icon" href="{{ asset('logo.png') }}">
-
+<meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- Polices --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
