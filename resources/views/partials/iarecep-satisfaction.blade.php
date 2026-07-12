@@ -16,7 +16,7 @@
                 class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400/50 transition resize-none"></textarea>
         </div>
         <button type="submit"
-            class="w-full rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500 px-6 py-3 text-sm font-semibold text-black hover:shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-shadow">
+            class="w-full rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500 px-6 py-3 text-sm font-semibold text-black hover:shadow-[0_0_20px_rgba(52,226,192,0.4)] transition-shadow">
             Être contacté par un conseiller
         </button>
         <p id="iarecep-satisfaction-msg" class="hidden text-xs text-center"></p>
