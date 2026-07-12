@@ -22,7 +22,7 @@
 
     <h1 class="hero-in-2 font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.15]">
         Créez votre réceptionniste IA
-        <span class="block mt-2 bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent text-gradient-animated">
+        <span class="block mt-2 bg-gradient-to-r from-sky-400 via-indigo-400 to-indigo-500 bg-clip-text text-transparent text-gradient-animated">
             en moins de 2 minutes
         </span>
     </h1>

@@ -91,16 +91,19 @@
             @fill-chat.window="send($event.detail.message)"
             class="card-hover rounded-2xl border border-white/10 bg-[#0a0a0c] overflow-hidden shadow-2xl">
 
-            <div class="bg-gradient-to-r from-sky-500 to-blue-600 px-4 sm:px-5 py-3.5 sm:py-4 flex items-center justify-between">
+            <div class="bg-gradient-to-r from-sky-400 to-indigo-500 px-4 sm:px-5 py-3.5 sm:py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('logo.png') }}" alt="IA DIAL" class="h-8 w-8 rounded-full bg-white/20 p-1">
+                    <img src="{{ asset('logo.png') }}" alt="IA DIAL" class="h-8 w-8 rounded-full bg-black/20 p-1">
                     <div>
-                        <p class="text-sm font-semibold text-white">Léa · Réceptionniste IA DIAL</p>
-                        <p class="text-xs text-white/80 flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-300"></span> En ligne · 8h-18h
+                        <p class="text-sm font-semibold text-black">Léa · Réceptionniste IA DIAL</p>
+                        <p class="text-xs text-black/70 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-black/70"></span> En ligne · 8h-18h
                         </p>
                     </div>
                 </div>
+                <span class="listen-wave hidden sm:inline-flex opacity-80" aria-hidden="true" style="--ia-teal:#0a0a0c; --ia-violet:#0a0a0c;">
+                    <span></span><span></span><span></span><span></span><span></span>
+                </span>
             </div>
 
             <div x-ref="scrollArea" class="h-72 sm:h-80 overflow-y-auto px-4 sm:px-5 py-5 space-y-4 scroll-smooth">
@@ -114,7 +117,8 @@
                 </template>
 
                 <div x-show="loading" x-cloak class="flex justify-start">
-                    <div class="bg-white/5 border border-white/10 text-white/40 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm">
+                    <div class="bg-white/5 border border-white/10 text-white/40 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm flex items-center gap-2">
+                        <span class="listen-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></span>
                         Léa est en train d'écrire…
                     </div>
                 </div>
@@ -130,4 +134,4 @@
             </div>
         </div>
     </div>
-</section>
+</section>sss
