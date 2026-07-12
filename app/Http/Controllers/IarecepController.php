@@ -37,6 +37,33 @@ class IarecepController extends Controller
         ]);
     }
 
+    /**
+     * Page "Calendrier" accessible depuis le menu principal.
+     * Vue d'ensemble en LECTURE SEULE de tous les rendez-vous présents en
+     * base (tous tests confondus) : aucune réservation possible ici, juste
+     * un affichage complet, façon Google Agenda.
+     */
+    public function calendrier()
+    {
+        $appointments = IarecepAppointment::with('test:id,company_name')
+            ->where('status', 'confirmed')
+            ->orderBy('date')
+            ->orderBy('time')
+            ->get()
+            ->map(fn ($a) => [
+                'date'      => $a->date->format('Y-m-d'),
+                'date_fr'   => $a->date->format('d/m/Y'),
+                'time'      => substr($a->time, 0, 5),
+                'full_name' => $a->full_name,
+                'company'   => $a->test->company_name ?? null,
+            ])
+            ->values();
+
+        return view('calendrier', [
+            'appointments' => $appointments,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

@@ -168,6 +168,87 @@
     </div>
 </section>
 
+{{-- ================= CALENDRIER ================= --}}
+<section id="calendrier" class="max-w-7xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
+    <div class="reveal text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+        <span class="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-1.5 text-xs text-sky-300 mb-5">
+            <span class="listen-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></span>
+            Prise de rendez-vous automatique
+        </span>
+        <h2 class="font-display text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight">Un calendrier qui se remplit tout seul</h2>
+        <p class="mt-4 text-white/50 text-sm sm:text-base leading-relaxed">
+            Vos rendez-vous apparaissent en temps réel dès que votre réceptionniste IA les confirme, par chat ou par téléphone.
+            Deux façons de l'utiliser, à vous de choisir.
+        </p>
+    </div>
+
+    <div class="reveal-group grid md:grid-cols-2 gap-6 sm:gap-8">
+        {{-- Option 1 : calendrier intégré --}}
+        <div class="reveal card-hover rounded-2xl border border-sky-400/25 bg-gradient-to-b from-sky-400/[0.06] to-transparent p-6 sm:p-8">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-11 h-11 rounded-xl bg-sky-400/15 flex items-center justify-center text-sky-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+                <div>
+                    <h3 class="font-display font-semibold">Calendrier intégré IADial</h3>
+                    <p class="text-xs text-sky-300/80">Inclus, prêt à l'emploi</p>
+                </div>
+            </div>
+            <p class="text-sm text-white/50 leading-relaxed">
+                Aucune configuration à faire de votre côté : IADial embarque son propre calendrier, visible depuis votre espace client,
+                avec vos créneaux, vos disponibilités et l'historique complet des rendez-vous pris par votre assistant.
+            </p>
+            <ul class="mt-5 space-y-2 text-sm text-white/60">
+                <li class="flex items-start gap-2">
+                    <svg class="w-4 h-4 text-sky-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Aucun compte tiers à connecter
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-4 h-4 text-sky-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Créneaux et conflits gérés automatiquement
+                </li>
+            </ul>
+        </div>
+
+        {{-- Option 2 : agenda existant --}}
+        <div class="reveal card-hover rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-11 h-11 rounded-xl bg-indigo-400/15 flex items-center justify-center text-indigo-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </div>
+                <div>
+                    <h3 class="font-display font-semibold">Votre agenda existant</h3>
+                    <p class="text-xs text-indigo-300/80">Google Agenda, Outlook, iCloud…</p>
+                </div>
+            </div>
+            <p class="text-sm text-white/50 leading-relaxed">
+                Vous avez déjà vos habitudes ? Connectez votre agenda actuel et votre réceptionniste IA y ajoute directement les rendez-vous,
+                sans doublon avec ce que vous avez déjà planifié ailleurs.
+            </p>
+            <ul class="mt-5 space-y-2 text-sm text-white/60">
+                <li class="flex items-start gap-2">
+                    <svg class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Synchronisation avec votre agenda actuel
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Notifications directement sur votre téléphone habituel
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <p class="reveal text-center text-xs text-white/30 mt-8">
+        Ci-dessous, un aperçu du calendrier intégré tel que vous le recevrez — testez-le en prenant un rendez-vous fictif via le chat plus bas.
+    </p>
+    <p class="reveal text-center mt-3">
+        <a href="{{ route('iarecep.calendrier') }}" class="text-sm text-sky-300 hover:text-sky-200 transition inline-flex items-center gap-1.5">
+            Voir le calendrier complet de tous les rendez-vous
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7M21 12H3"/></svg>
+        </a>
+    </p>
+</section>
+
 {{-- ================= MODE TEST (fichier séparé) ================= --}}
 @include('partials.mode-test')
 
