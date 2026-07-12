@@ -214,6 +214,9 @@
                 <a href="#fonctionnalites" class="relative hover:text-white transition py-1
                     after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-sky-400
                     hover:after:w-full after:transition-all">Fonctionnalités</a>
+                <a href="{{ route('iarecep.calendrier') }}" class="relative hover:text-white transition py-1
+                    after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-sky-400
+                    hover:after:w-full after:transition-all">Calendrier</a>
                 <a href="#tarifs" class="relative hover:text-white transition py-1
                     after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-sky-400
                     hover:after:w-full after:transition-all">Tarifs</a>
@@ -248,6 +251,7 @@
         {{-- Menu mobile --}}
         <div x-show="open" x-cloak x-transition class="md:hidden border-t border-white/10 bg-black/95 px-4 sm:px-6 py-4 space-y-3 text-sm text-white/70">
             <a href="#fonctionnalites" class="block hover:text-white py-1">Fonctionnalités</a>
+            <a href="{{ route('iarecep.calendrier') }}" class="block hover:text-white py-1">Calendrier</a>
             <a href="#tarifs" class="block hover:text-white py-1">Tarifs</a>
             <a href="#demo" class="block hover:text-white py-1">Démo</a>
             <a href="#faq" class="block hover:text-white py-1">FAQ</a>

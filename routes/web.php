@@ -15,3 +15,5 @@ Route::get('/essai-gratuit/appointments', [IarecepController::class, 'appointmen
 Route::post('/essai-gratuit/appointments', [IarecepController::class, 'appointmentsStore'])->name('iarecep.appointments.store');
 Route::post('/iarecep/demo/chat', [IarecepController::class, 'demoChat'])->name('iarecep.demo.chat');
 Route::post('/iarecep/demo/reset', [IarecepController::class, 'demoReset'])->name('iarecep.demo.reset');
+
+Route::get('/calendrier', [IarecepController::class, 'calendrier'])->name('iarecep.calendrier');
