@@ -6,7 +6,7 @@
         <input type="text" id="iarecep-text-input" placeholder="Écrivez votre message..." autocomplete="off"
             class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400/50 transition">
         <button type="submit"
-            class="shrink-0 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500 px-4 py-3 text-black hover:shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-shadow">
+            class="shrink-0 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500 px-4 py-3 text-black hover:shadow-[0_0_20px_rgba(52,226,192,0.4)] transition-shadow">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7M21 12H3"/></svg>
         </button>
     </form>

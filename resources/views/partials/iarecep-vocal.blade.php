@@ -3,7 +3,7 @@
     <div id="iarecep-vocal-log" class="space-y-2 max-h-80 overflow-y-auto text-left mb-6 text-sm text-white/70"></div>
 
     <button type="button" id="iarecep-vocal-btn"
-        class="mx-auto flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 text-black shadow-[0_0_25px_rgba(56,189,248,0.4)] transition-transform active:scale-95">
+        class="mx-auto flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 text-black shadow-[0_0_25px_rgba(52,226,192,0.4)] transition-transform active:scale-95">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18v3m-4 0h8M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3zm7-3a7 7 0 01-14 0"/>
         </svg>

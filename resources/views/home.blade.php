@@ -19,7 +19,7 @@
 
         <h1 class="hero-in-2 font-display text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-bold tracking-tight leading-[1.15] sm:leading-[1.1]">
             Le réceptionniste IA
-            <span class="block mt-1 sm:mt-2 bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent text-gradient-animated">
+            <span class="block mt-1 sm:mt-2 bg-gradient-to-r from-sky-400 via-indigo-400 to-indigo-500 bg-clip-text text-transparent text-gradient-animated">
                 de votre entreprise,
             </span>
             <span class="block mt-1 sm:mt-2">disponible à tout moment</span>
@@ -31,8 +31,8 @@
 
         <div class="hero-in-4 mt-7 sm:mt-8 flex flex-col sm:flex-row justify-center lg:justify-start gap-3 sm:gap-4">
             <a href="#mode-test" class="btn-shine inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500
-                px-6 py-3.5 text-sm font-semibold text-black shadow-[0_0_20px_rgba(56,189,248,0.35)]
-                hover:shadow-[0_0_30px_rgba(56,189,248,0.55)] transition-shadow">
+                px-6 py-3.5 text-sm font-semibold text-black shadow-[0_0_20px_rgba(52,226,192,0.35)]
+                hover:shadow-[0_0_30px_rgba(52,226,192,0.55)] transition-shadow">
                 Essayer en mode test
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7M21 12H3"/></svg>
             </a>
@@ -81,27 +81,31 @@
 
             {{-- Robot central (SVG) --}}
             <div class="relative w-52 h-52 sm:w-64 sm:h-64 md:w-80 md:h-80">
-                <svg viewBox="0 0 300 300" class="w-full h-full drop-shadow-[0_0_40px_rgba(56,189,248,0.25)]">
+                <svg viewBox="0 0 300 300" class="w-full h-full drop-shadow-[0_0_40px_rgba(52,226,192,0.25)]">
                     <defs>
                         <linearGradient id="botBody" x1="0" y1="0" x2="1" y2="1">
                             <stop offset="0%" stop-color="#1e293b"/>
                             <stop offset="100%" stop-color="#0f172a"/>
                         </linearGradient>
+                        <linearGradient id="botAccent" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#34E2C0"/>
+                            <stop offset="100%" stop-color="#7C6FFF"/>
+                        </linearGradient>
                     </defs>
                     <circle cx="150" cy="150" r="130" fill="url(#botBody)" opacity="0.5"/>
-                    <rect x="90" y="70" width="120" height="100" rx="28" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                    <rect x="90" y="70" width="120" height="100" rx="28" fill="#0f172a" stroke="url(#botAccent)" stroke-width="2"/>
                     <rect x="106" y="98" width="88" height="44" rx="18" fill="#020617"/>
-                    <circle cx="132" cy="120" r="7" fill="#38bdf8"/>
-                    <circle cx="168" cy="120" r="7" fill="#38bdf8"/>
-                    <line x1="150" y1="70" x2="150" y2="48" stroke="#38bdf8" stroke-width="3"/>
-                    <circle cx="150" cy="42" r="7" fill="#38bdf8"/>
-                    <path d="M84 110 a66 66 0 0 1 132 0" fill="none" stroke="#38bdf8" stroke-width="4"/>
-                    <rect x="76" y="104" width="16" height="28" rx="6" fill="#38bdf8"/>
-                    <rect x="208" y="104" width="16" height="28" rx="6" fill="#38bdf8"/>
+                    <circle cx="132" cy="120" r="7" fill="#34E2C0"/>
+                    <circle cx="168" cy="120" r="7" fill="#34E2C0"/>
+                    <line x1="150" y1="70" x2="150" y2="48" stroke="#34E2C0" stroke-width="3"/>
+                    <circle cx="150" cy="42" r="7" fill="#34E2C0"/>
+                    <path d="M84 110 a66 66 0 0 1 132 0" fill="none" stroke="url(#botAccent)" stroke-width="4"/>
+                    <rect x="76" y="104" width="16" height="28" rx="6" fill="#34E2C0"/>
+                    <rect x="208" y="104" width="16" height="28" rx="6" fill="#7C6FFF"/>
                     <rect x="105" y="178" width="90" height="70" rx="20" fill="#0f172a" stroke="#334155" stroke-width="2"/>
                     <path d="M195 200 q35 -10 40 -45" stroke="#0f172a" stroke-width="16" stroke-linecap="round" fill="none"/>
-                    <path d="M195 200 q35 -10 40 -45" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" fill="none"/>
-                    <circle cx="236" cy="155" r="12" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                    <path d="M195 200 q35 -10 40 -45" stroke="#34E2C0" stroke-width="2" stroke-linecap="round" fill="none"/>
+                    <circle cx="236" cy="155" r="12" fill="#0f172a" stroke="#34E2C0" stroke-width="2"/>
                     <path d="M105 200 q-35 5 -38 35" stroke="#0f172a" stroke-width="16" stroke-linecap="round" fill="none"/>
                 </svg>
             </div>
@@ -198,8 +202,8 @@
             <p class="mt-2 text-white/50 text-sm sm:text-base">Testez gratuitement notre réceptionniste IA sans engagement.</p>
             <a href="{{ route('iarecep.index') }}" target="_blank" rel="noopener"
                class="btn-shine mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500
-                px-6 py-3.5 text-sm font-semibold text-black shadow-[0_0_20px_rgba(56,189,248,0.35)]
-                hover:shadow-[0_0_30px_rgba(56,189,248,0.55)] transition-shadow">
+                px-6 py-3.5 text-sm font-semibold text-black shadow-[0_0_20px_rgba(52,226,192,0.35)]
+                hover:shadow-[0_0_30px_rgba(52,226,192,0.55)] transition-shadow">
                 Essayer en mode test
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7M21 12H3"/></svg>
             </a>

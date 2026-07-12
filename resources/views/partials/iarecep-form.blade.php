@@ -44,8 +44,8 @@
 
     <button type="submit" id="iarecep-submit-btn"
         class="btn-shine w-full inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500
-            px-6 py-3.5 text-sm font-semibold text-black shadow-[0_0_20px_rgba(56,189,248,0.35)]
-            hover:shadow-[0_0_30px_rgba(56,189,248,0.55)] transition-shadow disabled:opacity-60">
+            px-6 py-3.5 text-sm font-semibold text-black shadow-[0_0_20px_rgba(52,226,192,0.35)]
+            hover:shadow-[0_0_30px_rgba(52,226,192,0.55)] transition-shadow disabled:opacity-60">
         Créer mon réceptionniste IA
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7M21 12H3"/></svg>
     </button>
@@ -87,8 +87,6 @@ document.getElementById('iarecep-form').addEventListener('submit', async functio
         const targetWrapper = mode === 'vocal' ? 'iarecep-vocal-wrapper' : 'iarecep-text-wrapper';
         document.getElementById(targetWrapper).classList.remove('hidden');
         document.getElementById('iarecep-satisfaction-wrapper').classList.remove('hidden');
-document.getElementById('iarecep-satisfaction-wrapper').classList.remove('hidden');
-document.getElementById('iarecep-calendar-wrapper').classList.remove('hidden'); // ← ajouter cette ligne
 
 window.dispatchEvent(new CustomEvent('iarecep:started', { detail: { welcome: data.welcome, mode } }));
     } catch (err) {

@@ -10,7 +10,7 @@
     {{-- Polices --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     {{-- Tailwind via CDN --}}
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,10 +21,13 @@
                     fontFamily: {
                         display: ['"Space Grotesk"', 'sans-serif'],
                         sans: ['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        sky: { 400: '#38bdf8' },
-                        indigo: { 500: '#6366f1' },
+                        /* Identité IADial : menthe (écoute active) + violet (intelligence) + corail (action) */
+                        sky: { 400: '#34E2C0' },
+                        indigo: { 500: '#7C6FFF' },
+                        coral: { 400: '#FF9B73', 500: '#FF7A47' },
                     },
                 },
             },
@@ -35,26 +38,35 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
+        :root {
+            --ia-bg: #05070A;
+            --ia-teal: #34E2C0;
+            --ia-violet: #7C6FFF;
+            --ia-coral: #FF7A47;
+            --ia-ink: #F5F7FA;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #030304;
+            background-color: var(--ia-bg);
         }
         .font-display { font-family: 'Space Grotesk', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
 
         /* Grille de points façon réseau neuronal, en écho au logo */
         .neural-grid {
-            background-image: radial-gradient(rgba(56, 189, 248, 0.15) 1px, transparent 1px);
+            background-image: radial-gradient(rgba(52, 226, 192, 0.16) 1px, transparent 1px);
             background-size: 28px 28px;
             mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, black 40%, transparent 100%);
         }
 
         /* Halo lumineux derrière le contenu */
         .glow-orb {
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(37, 99, 235, 0.12) 40%, transparent 70%);
+            background: radial-gradient(circle, rgba(52, 226, 192, 0.32) 0%, rgba(124, 111, 255, 0.14) 45%, transparent 70%);
             filter: blur(60px);
         }
 
-        ::selection { background: #38bdf8; color: #000; }
+        ::selection { background: var(--ia-teal); color: #000; }
 
         /* ===== ANIMATIONS AU SCROLL ===== */
         .reveal {
@@ -118,8 +130,8 @@
         }
         .card-hover:hover {
             transform: translateY(-6px);
-            border-color: rgba(56, 189, 248, 0.35);
-            box-shadow: 0 20px 40px -20px rgba(56, 189, 248, 0.25);
+            border-color: rgba(52, 226, 192, 0.35);
+            box-shadow: 0 20px 40px -20px rgba(52, 226, 192, 0.25);
         }
 
         /* ===== Flottement des cartes hero ===== */
@@ -128,9 +140,42 @@
             50% { transform: translateY(-8px); }
         }
 
+        /* ===== SIGNATURE : mini waveform "toujours à l'écoute" ===== */
+        .listen-wave {
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 2.5px;
+            height: 16px;
+        }
+        .listen-wave span {
+            width: 2.5px;
+            border-radius: 2px;
+            background: linear-gradient(180deg, var(--ia-teal), var(--ia-violet));
+            animation: waveBeat 1.1s ease-in-out infinite;
+        }
+        .listen-wave span:nth-child(1) { height: 40%; animation-delay: -1.0s; }
+        .listen-wave span:nth-child(2) { height: 100%; animation-delay: -0.8s; }
+        .listen-wave span:nth-child(3) { height: 60%; animation-delay: -0.6s; }
+        .listen-wave span:nth-child(4) { height: 85%; animation-delay: -0.4s; }
+        .listen-wave span:nth-child(5) { height: 45%; animation-delay: -0.2s; }
+        @keyframes waveBeat {
+            0%, 100% { transform: scaleY(0.35); opacity: 0.65; }
+            50% { transform: scaleY(1); opacity: 1; }
+        }
+
+        /* Divider "onde" en pied de page, écho du signal vocal */
+        .wave-divider {
+            height: 22px;
+            background-repeat: repeat-x;
+            background-size: 34px 22px;
+            opacity: 0.5;
+            background-image: linear-gradient(90deg, rgba(52,226,192,0.35) 1px, transparent 1px),
+                               linear-gradient(180deg, transparent 48%, rgba(124,111,255,0.25) 48%, rgba(124,111,255,0.25) 52%, transparent 52%);
+        }
+
         @media (prefers-reduced-motion: reduce) {
             .reveal, .hero-in-1, .hero-in-2, .hero-in-3, .hero-in-4, .hero-in-5,
-            .btn-shine::after, .text-gradient-animated, .card-hover {
+            .btn-shine::after, .text-gradient-animated, .card-hover, .listen-wave span {
                 animation: none !important;
                 transition: none !important;
                 opacity: 1 !important;
@@ -141,7 +186,7 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-[#030304] text-white antialiased relative overflow-x-hidden">
+<body class="bg-[#05070A] text-white antialiased relative overflow-x-hidden">
 
     {{-- Décor de fond fixe --}}
     <div class="pointer-events-none fixed inset-0 -z-10">
@@ -151,14 +196,17 @@
 
     {{-- NAVBAR --}}
     <header x-data="{ open: false }" class="sticky top-0 z-50 border-b border-white/10 bg-black/60 backdrop-blur-xl">
-        <nav class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-            <a href="{{ url('/') }}" class="flex items-center gap-3 group">
+        <nav class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4">
+            <a href="{{ url('/') }}" class="flex items-center gap-2 sm:gap-3 group">
                 <div class="relative">
                     <div class="absolute inset-0 rounded-full bg-sky-400/40 blur-md group-hover:bg-sky-400/60 transition"></div>
-                    <img src="{{ asset('logo.png') }}" alt="IADial" class="relative h-9 w-auto">
+                    <img src="{{ asset('logo.png') }}" alt="IADial" class="relative h-8 sm:h-9 w-auto">
                 </div>
-                <span class="font-display text-lg font-semibold tracking-tight">
+                <span class="font-display text-base sm:text-lg font-semibold tracking-tight">
                     IA<span class="text-sky-400">Dial</span>
+                </span>
+                <span class="listen-wave ml-1 hidden sm:inline-flex" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span>
                 </span>
             </a>
 
@@ -180,17 +228,17 @@
                     hover:after:w-full after:transition-all">Contact</a>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
                 <a href="{{ route('iarecep.index') }}" target="_blank" rel="noopener"
                    class="btn-shine hidden sm:inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500
-                       px-5 py-2.5 text-sm font-medium text-black shadow-[0_0_20px_rgba(56,189,248,0.35)]
-                       hover:shadow-[0_0_30px_rgba(56,189,248,0.55)] transition-shadow">
+                       px-4 sm:px-5 py-2.5 text-sm font-medium text-black shadow-[0_0_20px_rgba(52,226,192,0.35)]
+                       hover:shadow-[0_0_30px_rgba(52,226,192,0.55)] transition-shadow">
                     Essayer gratuitement
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7M21 12H3"/></svg>
                 </a>
 
                 {{-- Bouton menu mobile --}}
-                <button @click="open = !open" class="md:hidden p-2 text-white/70 hover:text-white">
+                <button @click="open = !open" class="md:hidden p-2 text-white/70 hover:text-white" aria-label="Ouvrir le menu">
                     <svg x-show="!open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                     <svg x-show="open" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -198,12 +246,12 @@
         </nav>
 
         {{-- Menu mobile --}}
-        <div x-show="open" x-cloak x-transition class="md:hidden border-t border-white/10 bg-black/95 px-6 py-4 space-y-3 text-sm text-white/70">
-            <a href="#fonctionnalites" class="block hover:text-white">Fonctionnalités</a>
-            <a href="#tarifs" class="block hover:text-white">Tarifs</a>
-            <a href="#demo" class="block hover:text-white">Démo</a>
-            <a href="#faq" class="block hover:text-white">FAQ</a>
-            <a href="#contact" class="block hover:text-white">Contact</a>
+        <div x-show="open" x-cloak x-transition class="md:hidden border-t border-white/10 bg-black/95 px-4 sm:px-6 py-4 space-y-3 text-sm text-white/70">
+            <a href="#fonctionnalites" class="block hover:text-white py-1">Fonctionnalités</a>
+            <a href="#tarifs" class="block hover:text-white py-1">Tarifs</a>
+            <a href="#demo" class="block hover:text-white py-1">Démo</a>
+            <a href="#faq" class="block hover:text-white py-1">FAQ</a>
+            <a href="#contact" class="block hover:text-white py-1">Contact</a>
             <a href="{{ route('iarecep.index') }}" target="_blank" rel="noopener"
                class="btn-shine block text-center rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500 px-5 py-2.5 font-medium text-black mt-2">
                 Essayer gratuitement
@@ -217,16 +265,22 @@
     </main>
 
     {{-- FOOTER --}}
-    <footer class="relative mt-32 border-t border-white/10">
-        <div class="max-w-7xl mx-auto px-6 py-16 grid grid-cols-2 md:grid-cols-5 gap-10">
-            <div class="col-span-2">
+    <footer class="relative mt-24 sm:mt-32 border-t border-white/10">
+        <div class="wave-divider w-full"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 sm:gap-10">
+            <div class="sm:col-span-2">
                 <div class="flex items-center gap-3 mb-4">
                     <img src="{{ asset('logo.png') }}" alt="IADial" class="h-8 w-auto">
                     <span class="font-display font-semibold text-lg">IA<span class="text-sky-400">Dial</span></span>
+                    <span class="listen-wave" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span><span></span>
+                    </span>
                 </div>
                 <p class="text-white/40 text-sm leading-relaxed max-w-xs">
                     Le réceptionniste IA qui répond à vos clients par téléphone et par chat, 24h/24 et 7j/7.
                 </p>
+                <p class="font-mono text-[11px] tracking-wide text-sky-400/60 mt-4">status: à l'écoute — 24/7</p>
             </div>
 
             <div>
@@ -256,7 +310,7 @@
         </div>
 
         <div class="border-t border-white/10">
-            <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
                 <p class="text-white/30 text-xs">&copy; {{ date('Y') }} IADial. Tous droits réservés.</p>
                 <p class="text-white/30 text-xs">Conforme RGPD &middot; Hébergé en Europe</p>
             </div>
