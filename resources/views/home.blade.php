@@ -26,7 +26,8 @@
         </h1>
 
         <p class="hero-in-3 mt-5 sm:mt-6 text-white/50 text-base sm:text-lg leading-relaxed max-w-lg mx-auto lg:mx-0">
-            Accueillez, informez et prenez rendez-vous automatiquement par chat ou par téléphone grâce à l'intelligence artificielle.
+            Zéro appel manqué. Zéro client perdu. votre chiffre d'affaires augmente.
+Avec IAdial Votre entreprise répond 24/24. Même quand vous dormez.
         </p>
 
         <div class="hero-in-4 mt-7 sm:mt-8 flex flex-col sm:flex-row justify-center lg:justify-start gap-3 sm:gap-4">
@@ -37,11 +38,11 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7M21 12H3"/></svg>
             </a>
 
-            <a href="#demo-video" class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/15
+            <!-- <a href="#demo-video" class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/15
                 px-6 py-3.5 text-sm font-semibold text-white/90 hover:bg-white/5 transition">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 Voir la démo vidéo
-            </a>
+            </a> -->
         </div>
 
         <ul class="hero-in-5 mt-7 sm:mt-8 flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 text-sm text-white/50">
