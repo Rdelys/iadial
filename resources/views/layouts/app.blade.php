@@ -217,7 +217,7 @@
                 <a href="{{ route('iarecep.calendrier') }}" class="relative hover:text-white transition py-1
                     after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-sky-400
                     hover:after:w-full after:transition-all">Calendrier</a>
-                <a href="#tarifs" class="relative hover:text-white transition py-1
+                <a href="{{ route('tarifs') }}" class="relative hover:text-white transition py-1
                     after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-sky-400
                     hover:after:w-full after:transition-all">Tarifs</a>
                 <a href="#demo" class="relative hover:text-white transition py-1
