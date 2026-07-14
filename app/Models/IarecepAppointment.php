@@ -9,7 +9,7 @@ class IarecepAppointment extends Model
 {
     protected $fillable = [
         'iarecep_test_id', 'token', 'date', 'time',
-        'full_name', 'phone', 'notes','source', 'status',
+        'full_name', 'phone','email', 'notes','source', 'status',
     ];
 
     protected $casts = [

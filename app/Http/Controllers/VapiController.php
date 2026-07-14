@@ -89,11 +89,12 @@ class VapiController extends Controller
     return response()->json(['results' => $results]);
 }
 
-    private function bookAppointment(array $args, array $message): string
+   private function bookAppointment(array $args, array $message): string
 {
     $date = $args['date'] ?? null;
     $time = $args['time'] ?? null;
     $fullName = $args['full_name'] ?? null;
+    $email = $args['email'] ?? null;
     $phone = $args['phone'] ?? null;
     $notes = $args['notes'] ?? null;
 
@@ -109,11 +110,14 @@ class VapiController extends Controller
     }
 
     $isValidTime = $time && in_array($time, self::SLOTS, true);
+    $isValidEmail = $email && filter_var($email, FILTER_VALIDATE_EMAIL);
 
-    if (! $isValidDate || ! $isValidTime || ! $fullName) {
-        Log::warning('bookAppointment: validation échouée', compact('date', 'time', 'fullName', 'isValidDate', 'isValidTime'));
-        return "Je n'ai pas pu réserver : la date, l'heure ou le nom sont manquants ou invalides. "
-            .'Créneaux valides : '.implode(', ', self::SLOTS);
+    if (! $isValidDate || ! $isValidTime || ! $fullName || ! $isValidEmail) {
+        Log::warning('bookAppointment: validation échouée', compact(
+            'date', 'time', 'fullName', 'email', 'isValidDate', 'isValidTime', 'isValidEmail'
+        ));
+        return "Je n'ai pas pu réserver : la date, l'heure, le nom ou l'email sont manquants ou "
+            .'invalides. Créneaux valides : '.implode(', ', self::SLOTS);
     }
 
     $alreadyTaken = IarecepAppointment::where('date', $date)
@@ -138,6 +142,7 @@ class VapiController extends Controller
             'time' => $time,
             'full_name' => $fullName,
             'phone' => $phone,
+            'email' => $email,
             'notes' => $notes,
             'status' => 'confirmed_vapi',
         ]);
@@ -154,6 +159,7 @@ class VapiController extends Controller
 
     $this->notifyByEmail('Nouveau rendez-vous pris via l\'assistant vocal Vapi', [
         'Nom du client' => $fullName,
+        'Email' => $email,
         'Téléphone' => $phone ?: '—',
         'Date' => $appointment->date->format('d/m/Y'),
         'Heure' => substr($appointment->time, 0, 5),
