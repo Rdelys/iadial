@@ -17,3 +17,4 @@ Route::post('/iarecep/demo/chat', [IarecepController::class, 'demoChat'])->name(
 Route::post('/iarecep/demo/reset', [IarecepController::class, 'demoReset'])->name('iarecep.demo.reset');
 
 Route::get('/calendrier', [IarecepController::class, 'calendrier'])->name('iarecep.calendrier');
+Route::get('/tarifs', [HomeController::class, 'tarifs'])->name('tarifs');
