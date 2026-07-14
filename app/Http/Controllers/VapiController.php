@@ -58,31 +58,36 @@ class VapiController extends Controller
      * (actuellement uniquement book_appointment).
      */
     private function handleToolCalls(array $message)
-    {
-        $results = [];
+{
+    $results = [];
 
-        foreach ($message['toolCallList'] ?? [] as $toolCall) {
-            $name = $toolCall['name'] ?? null;
-            $arguments = $toolCall['arguments'] ?? [];
-            $id = $toolCall['id'] ?? null;
+    foreach ($message['toolCallList'] ?? [] as $toolCall) {
+        $id = $toolCall['id'] ?? null;
+        $function = $toolCall['function'] ?? [];
+        $name = $function['name'] ?? null;
 
-            Log::info('Tool call reçu', ['name' => $name, 'arguments' => $arguments]);
+        $rawArguments = $function['arguments'] ?? [];
+        $arguments = is_string($rawArguments)
+            ? (json_decode($rawArguments, true) ?? [])
+            : $rawArguments;
 
-            $result = match ($name) {
-                'book_appointment' => $this->bookAppointment($arguments, $message),
-                default => "Outil inconnu : {$name}",
-            };
+        Log::info('Tool call reçu', ['name' => $name, 'arguments' => $arguments, 'raw' => $toolCall]);
 
-            Log::info('Résultat tool call', ['name' => $name, 'result' => $result]);
+        $result = match ($name) {
+            'book_appointment' => $this->bookAppointment($arguments, $message),
+            default => "Outil inconnu : {$name}",
+        };
 
-            $results[] = [
-                'toolCallId' => $id,
-                'result' => $result,
-            ];
-        }
+        Log::info('Résultat tool call', ['name' => $name, 'result' => $result]);
 
-        return response()->json(['results' => $results]);
+        $results[] = [
+            'toolCallId' => $id,
+            'result' => $result,
+        ];
     }
+
+    return response()->json(['results' => $results]);
+}
 
     private function bookAppointment(array $args, array $message): string
 {
