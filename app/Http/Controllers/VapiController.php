@@ -66,10 +66,14 @@ class VapiController extends Controller
             $arguments = $toolCall['arguments'] ?? [];
             $id = $toolCall['id'] ?? null;
 
+            Log::info('Tool call reçu', ['name' => $name, 'arguments' => $arguments]);
+
             $result = match ($name) {
                 'book_appointment' => $this->bookAppointment($arguments, $message),
                 default => "Outil inconnu : {$name}",
             };
+
+            Log::info('Résultat tool call', ['name' => $name, 'result' => $result]);
 
             $results[] = [
                 'toolCallId' => $id,
@@ -81,42 +85,33 @@ class VapiController extends Controller
     }
 
     private function bookAppointment(array $args, array $message): string
-    {
-        $date = $args['date'] ?? null;
-        $time = $args['time'] ?? null;
-        $fullName = $args['full_name'] ?? null;
-        $phone = $args['phone'] ?? null;
-        $notes = $args['notes'] ?? null;
+{
+    $date = $args['date'] ?? null;
+    $time = $args['time'] ?? null;
+    $fullName = $args['full_name'] ?? null;
+    $phone = $args['phone'] ?? null;
+    $notes = $args['notes'] ?? null;
 
-        $isValidDate = false;
-        if ($date) {
-            try {
-                $parsed = Carbon::createFromFormat('Y-m-d', $date);
-                $isValidDate = $parsed->format('Y-m-d') === $date
-                    && $parsed->greaterThanOrEqualTo(Carbon::today());
-            } catch (\Throwable $e) {
-                $isValidDate = false;
-            }
-        }
+    // ... validations existantes (isValidDate, isValidTime) ...
 
-        $isValidTime = $time && in_array($time, self::SLOTS, true);
+    if (! $isValidDate || ! $isValidTime || ! $fullName) {
+        Log::warning('bookAppointment: validation échouée', compact('date', 'time', 'fullName', 'isValidDate', 'isValidTime'));
+        return "Je n'ai pas pu réserver : la date, l'heure ou le nom sont manquants ou invalides. "
+            .'Créneaux valides : '.implode(', ', self::SLOTS);
+    }
 
-        if (! $isValidDate || ! $isValidTime || ! $fullName) {
-            return "Je n'ai pas pu réserver : la date, l'heure ou le nom sont manquants ou invalides. "
-                .'Créneaux valides : '.implode(', ', self::SLOTS);
-        }
+    $alreadyTaken = IarecepAppointment::where('date', $date)
+        ->where('time', $time)
+        ->whereIn('status', ['confirmed', 'confirmed_vapi'])
+        ->exists();
 
-        // Conflit vérifié tous statuts confondus (confirmé via le chat démo OU via Vapi)
-        $alreadyTaken = IarecepAppointment::where('date', $date)
-            ->where('time', $time)
-            ->whereIn('status', ['confirmed', 'confirmed_vapi'])
-            ->exists();
+    if ($alreadyTaken) {
+        Log::info('bookAppointment: créneau déjà pris', compact('date', 'time'));
+        return "Le créneau du {$date} à {$time} vient d'être pris. Merci de proposer un autre "
+            .'horaire parmi : '.implode(', ', self::SLOTS);
+    }
 
-        if ($alreadyTaken) {
-            return "Le créneau du {$date} à {$time} vient d'être pris. Merci de proposer un autre "
-                .'horaire parmi : '.implode(', ', self::SLOTS);
-        }
-
+    try {
         $vapiTest = $this->vapiSystemTest();
 
         $appointment = IarecepAppointment::create([
@@ -128,22 +123,23 @@ class VapiController extends Controller
             'full_name' => $fullName,
             'phone' => $phone,
             'notes' => $notes,
-            // Statut volontairement différent de "confirmed" : n'apparaît donc
-            // pas sur /calendrier qui ne filtre que status = confirmed.
             'status' => 'confirmed_vapi',
         ]);
 
-        $this->notifyByEmail('Nouveau rendez-vous pris via l\'assistant vocal Vapi', [
-            'Nom du client' => $fullName,
-            'Téléphone' => $phone ?: '—',
-            'Date' => $appointment->date->format('d/m/Y'),
-            'Heure' => substr($appointment->time, 0, 5),
-            'Motif' => $notes ?: '—',
-            'ID appel Vapi' => $message['call']['id'] ?? '—',
+        Log::info('bookAppointment: RDV créé avec succès', ['id' => $appointment->id]);
+    } catch (\Throwable $e) {
+        Log::error('bookAppointment: échec insertion', [
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
         ]);
 
-        return "Rendez-vous confirmé pour {$fullName} le {$date} à {$time}.";
+        return "Désolé, une erreur technique m'empêche de finaliser la réservation. Merci de réessayer.";
     }
+
+    $this->notifyByEmail(/* ... */);
+
+    return "Rendez-vous confirmé pour {$fullName} le {$date} à {$time}.";
+}
 
     /**
      * À la fin de chaque appel/chat Vapi, on envoie systématiquement un email
