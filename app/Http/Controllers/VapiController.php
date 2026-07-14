@@ -97,7 +97,18 @@ class VapiController extends Controller
     $phone = $args['phone'] ?? null;
     $notes = $args['notes'] ?? null;
 
-    // ... validations existantes (isValidDate, isValidTime) ...
+    $isValidDate = false;
+    if ($date) {
+        try {
+            $parsed = Carbon::createFromFormat('Y-m-d', $date);
+            $isValidDate = $parsed->format('Y-m-d') === $date
+                && $parsed->greaterThanOrEqualTo(Carbon::today());
+        } catch (\Throwable $e) {
+            $isValidDate = false;
+        }
+    }
+
+    $isValidTime = $time && in_array($time, self::SLOTS, true);
 
     if (! $isValidDate || ! $isValidTime || ! $fullName) {
         Log::warning('bookAppointment: validation échouée', compact('date', 'time', 'fullName', 'isValidDate', 'isValidTime'));
@@ -141,11 +152,17 @@ class VapiController extends Controller
         return "Désolé, une erreur technique m'empêche de finaliser la réservation. Merci de réessayer.";
     }
 
-    $this->notifyByEmail(/* ... */);
+    $this->notifyByEmail('Nouveau rendez-vous pris via l\'assistant vocal Vapi', [
+        'Nom du client' => $fullName,
+        'Téléphone' => $phone ?: '—',
+        'Date' => $appointment->date->format('d/m/Y'),
+        'Heure' => substr($appointment->time, 0, 5),
+        'Motif' => $notes ?: '—',
+        'ID appel Vapi' => $message['call']['id'] ?? '—',
+    ]);
 
     return "Rendez-vous confirmé pour {$fullName} le {$date} à {$time}.";
 }
-
     /**
      * À la fin de chaque appel/chat Vapi, on envoie systématiquement un email
      * récapitulatif (avec ou sans rendez-vous pris).
