@@ -8,10 +8,11 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18v3m-4 0h8M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3zm7-3a7 7 0 01-14 0"/>
         </svg>
     </button>
-    <p id="iarecep-vocal-status" class="text-xs text-white/40 mt-3">Appuyez pour parler</p>
+    <p id="iarecep-vocal-status" class="text-xs text-white/40 mt-3">Appuyez pour appeler</p>
     <p id="iarecep-vocal-error" class="hidden text-xs text-red-400 mt-2"></p>
 </div>
 
+<script src="https://unpkg.com/@vapi-ai/web@latest/dist/vapi.js"></script>
 <script>
 (function () {
     const logEl = document.getElementById('iarecep-vocal-log');
@@ -19,97 +20,120 @@
     const statusEl = document.getElementById('iarecep-vocal-status');
     const errorEl = document.getElementById('iarecep-vocal-error');
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognizing = false;
-    let recognition = null;
-
-    if (!SpeechRecognition) {
-        errorEl.textContent = "La reconnaissance vocale n'est pas supportée par ce navigateur. Utilisez le mode texte.";
-        errorEl.classList.remove('hidden');
-        btn.disabled = true;
-    } else {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'fr-FR';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-    }
+    let vapi = null;
+    let onCall = false;
+    let starting = false;
 
     function log(role, text) {
+        if (!text) return;
         const p = document.createElement('p');
         p.innerHTML = `<span class="${role === 'assistant' ? 'text-sky-300' : 'text-white'} font-medium">${role === 'assistant' ? 'IA' : 'Vous'} :</span> ${text}`;
         logEl.appendChild(p);
         logEl.scrollTop = logEl.scrollHeight;
     }
 
-    function speak(text) {
-        if (!window.speechSynthesis) return;
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'fr-FR';
-        window.speechSynthesis.speak(utter);
+    function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.remove('hidden');
     }
 
-    async function sendMessage(message) {
-    log('user', message);
-    statusEl.textContent = "La réceptionniste réfléchit...";
+    function setUiCalling() {
+        statusEl.textContent = "Raccrocher";
+        btn.classList.add('ring-4', 'ring-red-400/50');
+    }
 
-    try {
-        const res = await fetch(window.IARECEP.routes.chat, {
+    function setUiIdle() {
+        statusEl.textContent = "Appuyez pour appeler";
+        btn.classList.remove('ring-4', 'ring-red-400/50');
+    }
+
+    async function fetchAssistantConfig() {
+        const res = await fetch(window.IARECEP.routes.vapiConfig, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': window.IARECEP.csrf,
                 'Accept': 'application/json',
             },
-            body: JSON.stringify({ token: window.IARECEP.token, message }),
+            body: JSON.stringify({ token: window.IARECEP.token }),
         });
         const data = await res.json();
-
         if (!res.ok) {
-            errorEl.textContent = data.error || "Une erreur est survenue.";
-            errorEl.classList.remove('hidden');
-            statusEl.textContent = "Appuyez pour parler";
-            return;
+            throw new Error(data.error || "Impossible de préparer l'appel.");
         }
+        return data;
+    }
 
-        log('assistant', data.reply);
-        speak(data.reply);
-        statusEl.textContent = "Appuyez pour parler";
+    async function startCall() {
+        if (onCall || starting) return;
+        starting = true;
+        errorEl.classList.add('hidden');
+        statusEl.textContent = "Connexion en cours...";
 
-        if (data.appointment) {
-            window.IARECEP.calendar?.addAppointment(data.appointment);
+        try {
+            if (!window.Vapi) {
+                throw new Error("Le module vocal n'a pas pu se charger. Utilisez le mode texte.");
+            }
+
+            const { publicKey, assistant } = await fetchAssistantConfig();
+
+            if (!vapi) {
+                vapi = new window.Vapi(publicKey);
+
+                vapi.on('call-start', () => {
+                    onCall = true;
+                    starting = false;
+                    setUiCalling();
+                });
+
+                vapi.on('call-end', () => {
+                    onCall = false;
+                    starting = false;
+                    setUiIdle();
+                });
+
+                vapi.on('message', (message) => {
+                    if (message.type === 'transcript' && message.transcriptType === 'final') {
+                        log(message.role, message.transcript);
+                    }
+                    if (message.type === 'tool-calls' || message.type === 'tool-calls-result') {
+                        // Un rendez-vous a potentiellement été (dés)réservé côté serveur.
+                        window.IARECEP.calendar?.refresh();
+                    }
+                });
+
+                vapi.on('error', (e) => {
+                    console.error(e);
+                    starting = false;
+                    onCall = false;
+                    setUiIdle();
+                    showError("La communication vocale a été interrompue. Réessayez.");
+                });
+            }
+
+            await vapi.start(assistant);
+        } catch (e) {
+            starting = false;
+            setUiIdle();
+            showError(e.message || "Connexion impossible. Réessayez.");
         }
-        window.IARECEP.calendar?.refresh();
-    } catch (e) {
-        errorEl.textContent = "Connexion impossible. Réessayez.";
-        errorEl.classList.remove('hidden');
-        statusEl.textContent = "Appuyez pour parler";
     }
-}
 
-    if (recognition) {
-        btn.addEventListener('click', () => {
-            if (recognizing) return;
-            recognizing = true;
-            statusEl.textContent = "Je vous écoute...";
-            recognition.start();
-        });
-
-        recognition.addEventListener('result', (e) => {
-            const transcript = e.results[0][0].transcript;
-            sendMessage(transcript);
-        });
-
-        recognition.addEventListener('end', () => { recognizing = false; });
-        recognition.addEventListener('error', () => {
-            recognizing = false;
-            statusEl.textContent = "Appuyez pour parler";
-        });
+    function endCall() {
+        vapi?.stop();
     }
+
+    btn.addEventListener('click', () => {
+        if (onCall) {
+            endCall();
+        } else {
+            startCall();
+        }
+    });
 
     window.addEventListener('iarecep:started', function (e) {
         if (e.detail.mode === 'vocal') {
             log('assistant', e.detail.welcome);
-            speak(e.detail.welcome);
         }
     });
 })();

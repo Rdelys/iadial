@@ -18,3 +18,4 @@ Route::post('/iarecep/demo/reset', [IarecepController::class, 'demoReset'])->nam
 
 Route::get('/calendrier', [IarecepController::class, 'calendrier'])->name('iarecep.calendrier');
 Route::get('/tarifs', [HomeController::class, 'tarifs'])->name('tarifs');
+Route::post('/essai-gratuit/vapi-config', [IarecepController::class, 'vapiConfig'])->name('iarecep.vapi.config');
