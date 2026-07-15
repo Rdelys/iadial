@@ -91,11 +91,26 @@ class AdminDashboardController extends Controller
         return $series;
     }
 
-    public function appointments()
+   public function appointments()
 {
     $appointments = IarecepAppointment::where('status', 'confirmed_vapi')
-        ->latest()
-        ->paginate(15);
+        ->orderBy('date')
+        ->orderBy('time')
+        ->get([
+            'id', 'full_name', 'phone', 'email', 'notes',
+            'date', 'time', 'source', 'created_at',
+        ])
+        ->map(fn ($a) => [
+            'id'         => $a->id,
+            'full_name'  => $a->full_name,
+            'phone'      => $a->phone,
+            'email'      => $a->email,
+            'notes'      => $a->notes,
+            'date'       => $a->date->format('Y-m-d'),
+            'time'       => substr($a->time, 0, 5),
+            'source'     => $a->source ?? 'vapi',
+            'created_at' => $a->created_at->format('d/m/Y H:i'),
+        ]);
 
     return view('admin.appointments', compact('appointments'));
 }
