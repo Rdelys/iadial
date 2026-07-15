@@ -45,4 +45,7 @@ return [
         'webhook_secret' => env('VAPI_WEBHOOK_SECRET'),
         'notify_email'   => env('VAPI_NOTIFY_EMAIL', env('MAIL_FROM_ADDRESS')),
     ],
+    'admin' => [
+        'code' => env('ADMIN_ACCESS_CODE', '1234'),
+    ],
 ];
