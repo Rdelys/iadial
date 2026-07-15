@@ -3,6 +3,8 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IarecepController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\AdminDashboardController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -19,3 +21,15 @@ Route::post('/iarecep/demo/reset', [IarecepController::class, 'demoReset'])->nam
 Route::get('/calendrier', [IarecepController::class, 'calendrier'])->name('iarecep.calendrier');
 Route::get('/tarifs', [HomeController::class, 'tarifs'])->name('tarifs');
 Route::post('/essai-gratuit/vapi-config', [IarecepController::class, 'vapiConfig'])->name('iarecep.vapi.config');
+
+Route::prefix('admin')->name('admin.')->group(function () {
+Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
+Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+
+Route::middleware('admin.auth')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/rendez-vous', [AdminDashboardController::class, 'appointments'])->name('appointments');
+    Route::get('/essais', [AdminDashboardController::class, 'tests'])->name('tests');
+});
+});
