@@ -75,6 +75,7 @@ window.IARECEP = {
         chat: @json(route('iarecep.chat')),
         close: @json(route('iarecep.close')),
         demande: @json(route('iarecep.demande')),
+        vapiConfig: @json(route('iarecep.vapi.config')),
     },
     existingMessages: @json($existingMessages->map(fn($m) => ['role' => $m->role, 'content' => $m->content])),
 };

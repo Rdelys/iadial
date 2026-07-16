@@ -38,5 +38,14 @@ return [
         'key' => env('IARECEP_AI_KEY'),
         'model' => env('IARECEP_AI_MODEL', 'claude-sonnet-4-6'),
     ],
-
+    'vapi' => [
+        'public_key'     => env('VAPI_PUBLIC_KEY'),
+        'assistant_id'   => env('VAPI_ASSISTANT_ID'),
+        'private_key'    => env('VAPI_PRIVATE_KEY'),
+        'webhook_secret' => env('VAPI_WEBHOOK_SECRET'),
+        'notify_email'   => env('VAPI_NOTIFY_EMAIL', env('MAIL_FROM_ADDRESS')),
+    ],
+    'admin' => [
+        'code' => env('ADMIN_ACCESS_CODE', '1234'),
+    ],
 ];
