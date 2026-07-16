@@ -283,9 +283,9 @@
                 </div>
                 <p class="text-white/40 text-sm leading-relaxed max-w-xs">
                     Le réceptionniste IA qui répond à vos clients par téléphone et par chat, 24h/24 et 7j/7.
-                    Appeler directement Léa notre réceptionniste ia via +1 (657) 276 7420
+                    Appeler directement Léa notre réceptionniste ia numero ci-dessous
                 </p>
-                <p class="font-mono text-[11px] tracking-wide text-sky-400/60 mt-4">status: à l'écoute — 24/7</p>
+                <p class="font-mono text-[11px] tracking-wide text-sky-400/60 mt-4">status: à l'écoute — 24/7 - +1 (657) 276 7420</p>
             </div>
 
             <div>
