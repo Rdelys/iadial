@@ -217,7 +217,7 @@
                 <a href="{{ route('iarecep.calendrier') }}" class="relative hover:text-white transition py-1
                     after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-sky-400
                     hover:after:w-full after:transition-all">Calendrier</a>
-                <a href="#tarifs" class="relative hover:text-white transition py-1
+                <a href="{{ route('tarifs') }}" class="relative hover:text-white transition py-1
                     after:absolute after:left-0 after:-bottom-1 after:h-px after:w-0 after:bg-sky-400
                     hover:after:w-full after:transition-all">Tarifs</a>
                 <a href="#demo" class="relative hover:text-white transition py-1
@@ -336,6 +336,31 @@
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
         });
     </script>
-
+@if(config('services.vapi.public_key') && config('services.vapi.assistant_id'))
+    <script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
+    <vapi-widget
+        public-key="{{ config('services.vapi.public_key') }}"
+        assistant-id="{{ config('services.vapi.assistant_id') }}"
+        mode="hybrid"
+        theme="dark"
+        base-bg-color="#0f172a"
+        accent-color="#34E2C0"
+        cta-button-color="#34E2C0"
+        cta-button-text-color="#020617"
+        border-radius="large"
+        size="compact"
+        position="bottom-right"
+        title="IA DIAL"
+        cta-title="Besoin d'aide ?"
+        cta-subtitle="Discutez avec notre assistant IA"
+        start-button-text="Parler"
+        end-button-text="Raccrocher"
+        chat-first-message="Bonjour, je suis Léa, l'assistante virtuelle d'IA DIAL. Comment puis-je vous aider ?"
+        chat-placeholder="Écrivez votre message…"
+        consent-required="true"
+        consent-title="Conditions d'utilisation"
+        consent-content="En cliquant sur Accepter, vous consentez à ce que votre conversation soit traitée par notre assistant IA."
+    ></vapi-widget>
+@endif
 </body>
 </html>

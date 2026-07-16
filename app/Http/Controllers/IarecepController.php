@@ -455,15 +455,15 @@ class IarecepController extends Controller
     }
 
     /**
- * Prompt figé utilisé UNIQUEMENT pour le widget de démo de la landing page.
- * Ici, l'IA se présente comme la réceptionniste d'IA DIAL elle-même
- * (auto-démonstration du produit), pas comme celle d'un client.
- */
-private function iarecepDemoSystemPrompt(): string
-{
-    $today = Carbon::today()->translatedFormat('d/m/Y');
+     * Prompt figé utilisé UNIQUEMENT pour le widget de démo de la landing page.
+     * Ici, l'IA se présente comme la réceptionniste d'IA DIAL elle-même
+     * (auto-démonstration du produit), pas comme celle d'un client.
+     */
+    private function iarecepDemoSystemPrompt(): string
+    {
+        $today = Carbon::today()->translatedFormat('d/m/Y');
 
-    return <<<PROMPT
+        return <<<PROMPT
 Tu es Léa, la réceptionniste virtuelle officielle d'IA DIAL.
 
 À PROPOS D'IA DIAL :
@@ -505,65 +505,166 @@ visiteur du site qui teste concrètement ce qu'IA DIAL peut construire pour sa p
 PROMPT;
     }
 
-/**
- * Chat de démonstration de la landing page (widget "Mode test").
- * Contrairement à chat(), aucun IarecepTest n'est requis : l'historique
- * est simplement conservé en session, et le prompt système est figé
- * (celui d'IA DIAL lui-même, pas celui d'un client).
- */
-public function demoChat(Request $request)
-{
-    $data = $request->validate([
-        'message' => 'required|string|max:2000',
-    ]);
+    /**
+     * Chat de démonstration de la landing page (widget "Mode test").
+     * Contrairement à chat(), aucun IarecepTest n'est requis : l'historique
+     * est simplement conservé en session, et le prompt système est figé
+     * (celui d'IA DIAL lui-même, pas celui d'un client).
+     */
+    public function demoChat(Request $request)
+    {
+        $data = $request->validate([
+            'message' => 'required|string|max:2000',
+        ]);
 
-    $apiKey = config('services.iarecep_ai.key');
-    $model  = config('services.iarecep_ai.model', 'claude-sonnet-4-6');
+        $apiKey = config('services.iarecep_ai.key');
+        $model  = config('services.iarecep_ai.model', 'claude-sonnet-4-6');
 
-    $history = session('iarecep_demo_history', []);
-    $history[] = ['role' => 'user', 'content' => $data['message']];
+        $history = session('iarecep_demo_history', []);
+        $history[] = ['role' => 'user', 'content' => $data['message']];
 
-    if (! $apiKey) {
-        $reply = "(Mode démo sans clé API) Merci pour votre message ! IA DIAL met en place votre "
-            ."réceptionniste IA en quelques heures. Notre équipe est joignable de 8h à 18h pour en discuter.";
-    } else {
-        try {
-            $response = $this->callAnthropic(
-                $apiKey,
-                $model,
-                $this->iarecepDemoSystemPrompt(),
-                $history,
-                [] // pas d'outil de réservation dans cette démo
-            );
+        if (! $apiKey) {
+            $reply = "(Mode démo sans clé API) Merci pour votre message ! IA DIAL met en place votre "
+                ."réceptionniste IA en quelques heures. Notre équipe est joignable de 8h à 18h pour en discuter.";
+        } else {
+            try {
+                $response = $this->callAnthropic(
+                    $apiKey,
+                    $model,
+                    $this->iarecepDemoSystemPrompt(),
+                    $history,
+                    [] // pas d'outil de réservation dans cette démo
+                );
 
-            $blocks = $response?->json('content', []) ?? [];
-            $reply = collect($blocks)->firstWhere('type', 'text')['text']
-                ?? "Pouvez-vous reformuler votre question ?";
-        } catch (\Throwable $e) {
-            Log::error('Erreur chat démo IA DIAL: '.$e->getMessage());
-            $reply = "Désolée, un souci technique momentané. Pouvez-vous réessayer ?";
+                $blocks = $response?->json('content', []) ?? [];
+                $reply = collect($blocks)->firstWhere('type', 'text')['text']
+                    ?? "Pouvez-vous reformuler votre question ?";
+            } catch (\Throwable $e) {
+                Log::error('Erreur chat démo IA DIAL: '.$e->getMessage());
+                $reply = "Désolée, un souci technique momentané. Pouvez-vous réessayer ?";
+            }
         }
+
+        $history[] = ['role' => 'assistant', 'content' => $reply];
+
+        // On garde un historique raisonnable en session
+        if (count($history) > 20) {
+            $history = array_slice($history, -20);
+        }
+
+        session(['iarecep_demo_history' => $history]);
+
+        return response()->json(['reply' => $reply]);
     }
 
-    $history[] = ['role' => 'assistant', 'content' => $reply];
+    /**
+     * Réinitialise la conversation de démo (ex: si le visiteur relance le test).
+     */
+    public function demoReset(Request $request)
+    {
+        session()->forget('iarecep_demo_history');
 
-    // On garde un historique raisonnable en session
-    if (count($history) > 20) {
-        $history = array_slice($history, -20);
+        return response()->json(['ok' => true]);
     }
 
-    session(['iarecep_demo_history' => $history]);
+    /**
+     * Construit un assistant Vapi éphémère pour le mode vocal de l'essai gratuit.
+     * Contrairement à l'assistant "Léa" de la landing (fixe, créé dans le dashboard
+     * Vapi, qui utilise l'outil book_appointment réel), celui-ci est généré à la
+     * volée avec le prompt de l'entreprise testée et un outil séparé
+     * (book_appointment_essai) pour ne JAMAIS toucher aux rendez-vous clients réels.
+     */
+    public function vapiConfig(Request $request)
+    {
+        $data = $request->validate(['token' => 'required|string']);
 
-    return response()->json(['reply' => $reply]);
-}
+        $test = IarecepTest::where('token', $data['token'])
+            ->where('status', 'in_progress')
+            ->latest()
+            ->first();
 
-/**
- * Réinitialise la conversation de démo (ex: si le visiteur relance le test).
- */
-public function demoReset(Request $request)
-{
-    session()->forget('iarecep_demo_history');
+        if (! $test) {
+            return response()->json(['error' => "Session de test introuvable."], 404);
+        }
 
-    return response()->json(['ok' => true]);
-}
+        $publicKey = config('services.vapi.public_key');
+
+        if (! $publicKey) {
+            return response()->json(['error' => "Le mode vocal n'est pas disponible pour le moment."], 503);
+        }
+
+        $today = Carbon::today()->toDateString();
+        $slotsList = implode(', ', self::SLOTS);
+
+        $systemPrompt = "Tu es la réceptionniste virtuelle de l'entreprise \"{$test->company_name}\""
+            .($test->sector ? ", active dans le secteur : {$test->sector}." : '.')
+            ." Voici la description fournie par le responsable de l'entreprise : \"{$test->about}\"."
+            ." Nous sommes aujourd'hui le {$today}."
+            ." Ceci est un appel de démonstration : la personne qui te parle teste ce que la réceptionniste"
+            ." vocale d'IA DIAL peut faire pour {$test->company_name}. Incarne pleinement cette réceptionniste,"
+            ." ne dis jamais que tu es une IA de démonstration."
+            ." Si le client souhaite prendre rendez-vous, propose-lui un créneau parmi : {$slotsList}."
+            ." Dès que la date, l'heure (parmi cette liste) et le nom complet du client sont confirmés"
+            ." oralement, utilise l'outil book_appointment_essai. Si le créneau est indisponible, propose-en"
+            ." un autre de la liste. Reste professionnelle, concise (2-3 phrases par réponse), vouvoie"
+            ." systématiquement, n'utilise ni abréviation ni emoji à l'oral. Réponds en français, sauf si"
+            ." le client parle une autre langue.";
+
+        $assistant = [
+            'name' => 'IADial – Essai '.$test->company_name,
+            'firstMessage' => "Bonjour, je suis la réceptionniste virtuelle de {$test->company_name}. Comment puis-je vous aider aujourd'hui ?",
+            'transcriber' => [
+                'provider' => 'deepgram',
+                'model' => 'nova-2',
+                'language' => 'fr',
+            ],
+            'voice' => [
+                // TODO: remplacer par un voiceId 11labs FR choisi dans le dashboard Vapi
+                'provider' => '11labs',
+                'voiceId' => 'burt',
+            ],
+            'model' => [
+                // TODO: vérifier dans le dashboard Vapi que "anthropic" + ce modèle
+                // sont bien activés sur ton compte
+                'provider' => 'anthropic',
+                'model' => config('services.iarecep_ai.model', 'claude-sonnet-4-6'),
+                'messages' => [
+                    ['role' => 'system', 'content' => $systemPrompt],
+                ],
+                'tools' => [[
+                    'type' => 'function',
+                    'function' => [
+                        'name' => 'book_appointment_essai',
+                        'description' => "Réserve un rendez-vous de test une fois la date, l'heure et le nom confirmés.",
+                        'parameters' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'date' => ['type' => 'string', 'description' => 'Date au format YYYY-MM-DD'],
+                                'time' => ['type' => 'string', 'description' => 'Heure au format HH:MM'],
+                                'full_name' => ['type' => 'string', 'description' => 'Nom complet du client'],
+                                'phone' => ['type' => 'string', 'description' => 'Téléphone, si donné'],
+                                'notes' => ['type' => 'string', 'description' => 'Motif, si donné'],
+                            ],
+                            'required' => ['date', 'time', 'full_name'],
+                        ],
+                    ],
+                    'server' => ['url' => url('/vapi/webhook')],
+                ]],
+            ],
+            'server' => [
+                'url' => url('/vapi/webhook'),
+                'secret' => config('services.vapi.webhook_secret'),
+            ],
+            // Permet à VapiController de retrouver le bon IarecepTest lors du tool-call
+            'metadata' => [
+                'token' => $test->token,
+                'source' => 'essai_gratuit_vocal',
+            ],
+        ];
+
+        return response()->json([
+            'publicKey' => $publicKey,
+            'assistant' => $assistant,
+        ]);
+    }
 }
