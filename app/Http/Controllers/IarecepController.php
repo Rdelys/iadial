@@ -620,8 +620,9 @@ PROMPT;
             ],
             'voice' => [
                 // TODO: remplacer par un voiceId 11labs FR choisi dans le dashboard Vapi
-                'provider' => '11labs',
-                'voiceId' => 'burt',
+                'provider' => 'cartesia',
+                'voiceId' => '65b25c5d-ff07-4687-a04c-da2f43ef6fa9',
+                'model' => 'sonic-3.5',
             ],
             'model' => [
                 // TODO: vérifier dans le dashboard Vapi que "anthropic" + ce modèle
