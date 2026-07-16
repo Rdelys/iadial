@@ -619,7 +619,10 @@ PROMPT;
                 'language' => 'fr',
             ],
             'voice' => [
-                // TODO: remplacer par un voiceId 11labs FR choisi dans le dashboard Vapi
+                // Voix "Pauline" (Cartesia, FR, féminine) : la même que
+                // celle de l'assistant "Léa" du widget principal, récupérée
+                // via GET https://api.vapi.ai/assistant/{id} pour garantir
+                // une cohérence de voix entre la démo et le produit final.
                 'provider' => 'cartesia',
                 'voiceId' => '65b25c5d-ff07-4687-a04c-da2f43ef6fa9',
                 'model' => 'sonic-3.5',
