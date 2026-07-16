@@ -10,6 +10,29 @@
     data-existing="{{ $existingTest ? '1' : '0' }}"
     data-existing-mode="{{ $existingTest->mode ?? 'text' }}">
 
+    {{--
+        IMPORTANT : ce bloc doit être défini AVANT les @include ci-dessous,
+        car les scripts inline de iarecep-text.blade.php, iarecep-vocal.blade.php
+        et iarecep-calendar.blade.php lisent window.IARECEP dès leur exécution
+        (pas de DOMContentLoaded), donc l'objet doit déjà exister à ce stade.
+    --}}
+    <script>
+    window.IARECEP = {
+        token: @json($token),
+        csrf: document.querySelector('meta[name="csrf-token"]')?.content,
+        routes: {
+            store: @json(route('iarecep.store')),
+            chat: @json(route('iarecep.chat')),
+            close: @json(route('iarecep.close')),
+            demande: @json(route('iarecep.demande')),
+            vapiConfig: @json(route('iarecep.vapi.config')),
+            appointmentsIndex: @json(route('iarecep.appointments.index')),
+            appointmentsStore: @json(route('iarecep.appointments.store')),
+        },
+        existingMessages: @json($existingMessages->map(fn($m) => ['role' => $m->role, 'content' => $m->content])),
+    };
+    </script>
+
     <div class="hero-in-1">
         <span class="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-1.5 text-xs text-sky-300 mb-8">
             <span class="relative flex h-2 w-2">
@@ -67,19 +90,6 @@
 </section>
 
 <script>
-window.IARECEP = {
-    token: @json($token),
-    csrf: document.querySelector('meta[name="csrf-token"]')?.content,
-    routes: {
-        store: @json(route('iarecep.store')),
-        chat: @json(route('iarecep.chat')),
-        close: @json(route('iarecep.close')),
-        demande: @json(route('iarecep.demande')),
-        vapiConfig: @json(route('iarecep.vapi.config')),
-    },
-    existingMessages: @json($existingMessages->map(fn($m) => ['role' => $m->role, 'content' => $m->content])),
-};
-
 (function () {
     const switchWrap = document.getElementById('iarecep-mode-switch');
     const buttons = switchWrap.querySelectorAll('.iarecep-mode-btn');

@@ -12,7 +12,19 @@
     <p id="iarecep-vocal-error" class="hidden text-xs text-red-400 mt-2"></p>
 </div>
 
-<script src="https://unpkg.com/@vapi-ai/web@latest/dist/vapi.js"></script>
+{{--
+    Le bundle unpkg "@vapi-ai/web/dist/vapi.js" est un module CommonJS
+    (il fait `exports.default = ...`), ce qui casse un simple <script src>
+    classique dans le navigateur ("exports is not defined").
+    On le charge donc via esm.sh, qui le retranspile en ESM consommable
+    directement par un <script type="module">, puis on l'expose sur window.
+--}}
+<script type="module">
+    import Vapi from 'https://esm.sh/@vapi-ai/web@latest';
+    window.Vapi = Vapi;
+    window.dispatchEvent(new Event('iarecep:vapi-sdk-ready'));
+</script>
+
 <script>
 (function () {
     const logEl = document.getElementById('iarecep-vocal-log');
@@ -23,6 +35,9 @@
     let vapi = null;
     let onCall = false;
     let starting = false;
+    let sdkReady = false;
+
+    window.addEventListener('iarecep:vapi-sdk-ready', () => { sdkReady = true; });
 
     function log(role, text) {
         if (!text) return;
@@ -64,6 +79,17 @@
         return data;
     }
 
+    async function waitForSdk(timeoutMs = 5000) {
+        if (window.Vapi) return true;
+        return new Promise((resolve) => {
+            const timer = setTimeout(() => resolve(!!window.Vapi), timeoutMs);
+            window.addEventListener('iarecep:vapi-sdk-ready', () => {
+                clearTimeout(timer);
+                resolve(true);
+            }, { once: true });
+        });
+    }
+
     async function startCall() {
         if (onCall || starting) return;
         starting = true;
@@ -71,7 +97,9 @@
         statusEl.textContent = "Connexion en cours...";
 
         try {
-            if (!window.Vapi) {
+            const hasSdk = sdkReady || await waitForSdk();
+
+            if (!hasSdk || !window.Vapi) {
                 throw new Error("Le module vocal n'a pas pu se charger. Utilisez le mode texte.");
             }
 
