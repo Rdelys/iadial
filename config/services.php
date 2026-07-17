@@ -48,4 +48,12 @@ return [
     'admin' => [
         'code' => env('ADMIN_ACCESS_CODE', '1234'),
     ],
+
+    'papi' => [
+        'token' => env('PAPI_TOKEN'),
+        'test_mode' => env('PAPI_TEST_MODE', true),
+        // Taux de conversion EUR → MGA utilisé uniquement pour transmettre le montant à Papi
+        // (le client voit et paie un prix asffiché en euros, Papi n'accepte que le MGA).
+        'eur_to_mga_rate' => (float) env('PAPI_EUR_TO_MGA_RATE', 4800),
+    ],
 ];

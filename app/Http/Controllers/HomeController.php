@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\IarecepVisit;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -13,6 +13,10 @@ class HomeController extends Controller
             'path' => request()->path(),
             'ip'   => request()->ip(),
         ]);
+
+        if (Auth::check()) {
+            return view('profile', ['user' => Auth::user()]);
+        }
 
         return view('home');
     }
