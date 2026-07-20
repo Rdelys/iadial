@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CompteActive;
 use App\Models\Payment;
 use App\Models\User;
 use App\Services\PapiService;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class PaymentController extends Controller
@@ -53,7 +55,55 @@ class PaymentController extends Controller
         $amountEur = (float) $planData['amount_eur'];
         $amountMga = round($amountEur * $rate, 2);
 
+        // --- Création / mise à jour du compte, connexion immédiate, statut inactif ---
+        $user = User::where('email', $data['email'])->first();
+
+        if (!$user) {
+            $temporaryPassword = Str::random(12);
+
+            $user = User::create([
+                'name' => $data['client_name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'company_name' => $data['company_name'],
+                'sector' => $data['sector'],
+                'address' => $data['address'],
+                'city' => $data['city'],
+                'password' => Hash::make($temporaryPassword),
+                'plan' => $plan,
+                'plan_label' => $planData['label'],
+                'subscription_status' => 'inactive',
+            ]);
+
+            Log::info('Compte créé en attente de paiement', ['user_id' => $user->id, 'email' => $user->email]);
+
+            try {
+                Mail::to($user->email)->send(new CompteActive($user, $temporaryPassword));
+            } catch (\Throwable $e) {
+                Log::error('Échec envoi mail CompteActive', ['message' => $e->getMessage()]);
+            }
+        } else {
+            $user->update([
+                'name' => $data['client_name'],
+                'phone' => $data['phone'],
+                'company_name' => $data['company_name'],
+                'sector' => $data['sector'],
+                'address' => $data['address'],
+                'city' => $data['city'],
+                'plan' => $plan,
+                'plan_label' => $planData['label'],
+                'subscription_status' => 'inactive',
+            ]);
+
+            Log::info('Compte existant mis à jour en attente de paiement', ['user_id' => $user->id, 'email' => $user->email]);
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        // --- Création du paiement, lié au compte dès maintenant ---
         $payment = Payment::create([
+            'user_id' => $user->id,
             'plan' => $plan,
             'plan_label' => $planData['label'],
             'client_name' => $data['client_name'],
@@ -111,8 +161,12 @@ class PaymentController extends Controller
     {
         $payment = Payment::where('reference', $request->query('reference'))->first();
 
-        if ($payment && $payment->status === 'success' && $payment->user_id) {
-            Auth::loginUsingId($payment->user_id);
+        if ($payment && $payment->status === 'success') {
+            // Le compte a été créé et connecté dès l'étape store(). On sécurise
+            // la connexion au cas où la session aurait été perdue entre-temps.
+            if (!Auth::check() && $payment->user_id) {
+                Auth::loginUsingId($payment->user_id);
+            }
 
             return redirect()->route('home')
                 ->with('success', 'Paiement confirmé ! Votre compte ' . $payment->plan_label . ' est activé.');
@@ -131,7 +185,7 @@ class PaymentController extends Controller
 
         return response()->json([
             'status' => $payment->status ?? 'inconnu',
-            'ready' => (bool) ($payment && $payment->status === 'success' && $payment->user_id),
+            'ready' => (bool) ($payment && $payment->status === 'success'),
         ]);
     }
 
@@ -178,39 +232,20 @@ class PaymentController extends Controller
             'raw_notification' => $request->all(),
         ]);
 
-        if ($payment->status === 'success' && !$payment->user_id) {
-            $user = User::where('email', $payment->email)->first();
-            $temporaryPassword = Str::random(12);
+        // Le compte existe déjà (créé lors du store()) : on ne fait qu'activer l'abonnement.
+        if ($payment->status === 'success' && $payment->user_id) {
+            $user = $payment->user ?? User::find($payment->user_id);
 
-            if (!$user) {
-                $user = User::create([
-                    'name' => $payment->client_name,
-                    'email' => $payment->email,
-                    'phone' => $payment->phone,
-                    'company_name' => $payment->company_name,
-                    'sector' => $payment->sector,
-                    'address' => $payment->address,
-                    'city' => $payment->city,
-                    'password' => Hash::make($temporaryPassword),
-                    'plan' => $payment->plan,
-                    'plan_label' => $payment->plan_label,
-                    'subscription_status' => 'active',
-                    'subscribed_at' => now(),
-                ]);
-
-                Log::info('Compte créé automatiquement après paiement', ['user_id' => $user->id, 'email' => $user->email]);
-
-                // Mail::to($user->email)->send(new \App\Mail\CompteActive($user, $temporaryPassword));
-            } else {
+            if ($user) {
                 $user->update([
                     'plan' => $payment->plan,
                     'plan_label' => $payment->plan_label,
                     'subscription_status' => 'active',
                     'subscribed_at' => now(),
                 ]);
-            }
 
-            $payment->update(['user_id' => $user->id]);
+                Log::info('Abonnement activé après paiement confirmé', ['user_id' => $user->id, 'email' => $user->email]);
+            }
         }
 
         return response()->json(['message' => 'Notification reçue.']);
