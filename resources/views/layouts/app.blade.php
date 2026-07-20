@@ -252,7 +252,7 @@
         <div x-show="open" x-cloak x-transition class="md:hidden border-t border-white/10 bg-black/95 px-4 sm:px-6 py-4 space-y-3 text-sm text-white/70">
             <a href="#fonctionnalites" class="block hover:text-white py-1">Fonctionnalités</a>
             <a href="{{ route('iarecep.calendrier') }}" class="block hover:text-white py-1">Calendrier</a>
-            <a href="#tarifs" class="block hover:text-white py-1">Tarifs</a>
+            <a href="{{ route('tarifs') }}" class="block hover:text-white py-1">Tarifs</a>
             <a href="#demo" class="block hover:text-white py-1">Démo</a>
             <a href="#faq" class="block hover:text-white py-1">FAQ</a>
             <a href="#contact" class="block hover:text-white py-1">Contact</a>
@@ -283,6 +283,7 @@
                 </div>
                 <p class="text-white/40 text-sm leading-relaxed max-w-xs">
                     Le réceptionniste IA qui répond à vos clients par téléphone et par chat, 24h/24 et 7j/7.
+                    Appeler directement Léa notre réceptionniste ia via +1 (657) 276 7420
                 </p>
                 <p class="font-mono text-[11px] tracking-wide text-sky-400/60 mt-4">status: à l'écoute — 24/7</p>
             </div>
