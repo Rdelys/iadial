@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\IarecepVapiNotificationMail;
 use App\Models\IarecepAppointment;
 use App\Models\IarecepTest;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -15,9 +16,8 @@ class VapiController extends Controller
     private const SLOTS = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'];
 
     /**
-     * Point d'entrée unique pour tous les événements serveur envoyés par Vapi
-     * (appels d'outil "tool-calls" pendant la conversation, et
-     * "end-of-call-report" à la fin de l'appel/chat).
+     * Point d'entrée unique pour tous les événements serveur envoyés par Vapi,
+     * pour TOUS les assistants (landing "Léa" + un assistant par client).
      */
     public function webhook(Request $request)
     {
@@ -29,7 +29,7 @@ class VapiController extends Controller
         $message = $request->input('message', []);
         $type = $message['type'] ?? null;
 
-        Log::info('Vapi webhook reçu', ['type' => $type]);
+        Log::info('Vapi webhook reçu', ['type' => $type, 'assistantId' => $this->extractAssistantId($message)]);
 
         return match ($type) {
             'tool-calls' => $this->handleToolCalls($message),
@@ -43,8 +43,6 @@ class VapiController extends Controller
         $expected = config('services.vapi.webhook_secret');
 
         if (! $expected) {
-            // Aucun secret configuré : à éviter en production, mais on ne bloque
-            // pas le développement local si tu n'as pas encore réglé .env.
             return true;
         }
 
@@ -54,13 +52,47 @@ class VapiController extends Controller
     }
 
     /**
+     * Récupère l'assistantId quel que soit l'endroit où Vapi le place selon
+     * le type d'événement (tool-calls vs end-of-call-report).
+     */
+    private function extractAssistantId(array $message): ?string
+    {
+        return $message['assistant']['id']
+            ?? $message['call']['assistantId']
+            ?? $message['assistantId']
+            ?? null;
+    }
+
+    /**
+     * Identifie le client propriétaire de l'appel via l'assistantId Vapi.
+     * Retourne null si c'est l'assistant "Léa" de la landing (config globale)
+     * ou si aucun client ne correspond.
+     */
+    private function resolveOwnerUser(array $message): ?User
+    {
+        $assistantId = $this->extractAssistantId($message);
+
+        if (! $assistantId) {
+            return null;
+        }
+
+        // Si c'est l'assistant global de la landing IA DIAL, ce n'est pas un client.
+        if ($assistantId === config('services.vapi.assistant_id')) {
+            return null;
+        }
+
+        return User::where('vapi_assistant_id', $assistantId)->first();
+    }
+
+    /**
      * Gère les appels d'outils déclenchés pendant la conversation.
-     * - book_appointment        : landing page (client réel qui veut nous contacter)
+     * - book_appointment        : landing "Léa" OU un assistant client (résolu via assistantId)
      * - book_appointment_essai  : mode vocal de l'essai gratuit (simple test)
      */
     private function handleToolCalls(array $message)
     {
         $results = [];
+        $ownerUser = $this->resolveOwnerUser($message);
 
         foreach ($message['toolCallList'] ?? [] as $toolCall) {
             $id = $toolCall['id'] ?? null;
@@ -72,10 +104,15 @@ class VapiController extends Controller
                 ? (json_decode($rawArguments, true) ?? [])
                 : $rawArguments;
 
-            Log::info('Tool call reçu', ['name' => $name, 'arguments' => $arguments, 'raw' => $toolCall]);
+            Log::info('Tool call reçu', [
+                'name' => $name,
+                'arguments' => $arguments,
+                'owner_user_id' => $ownerUser?->id,
+                'raw' => $toolCall,
+            ]);
 
             $result = match ($name) {
-                'book_appointment' => $this->bookAppointment($arguments, $message),
+                'book_appointment' => $this->bookAppointment($arguments, $message, $ownerUser),
                 'book_appointment_essai' => $this->bookAppointmentEssai($arguments, $message),
                 default => "Outil inconnu : {$name}",
             };
@@ -92,10 +129,14 @@ class VapiController extends Controller
     }
 
     /**
-     * Réservation réelle : uniquement pour l'assistant Vapi de la landing page
-     * (widget "Léa"), lorsqu'un client réel veut nous contacter. NE PAS TOUCHER.
+     * Réservation réelle.
+     * - Si $ownerUser est renseigné : c'est l'assistant d'un CLIENT (configuré
+     *   par l'admin dans /admin/clients). Le RDV est rattaché à ce client et
+     *   l'email part vers le client (pas vers IA DIAL).
+     * - Si $ownerUser est null : c'est l'assistant "Léa" de la landing IA DIAL
+     *   (comportement historique, inchangé).
      */
-    private function bookAppointment(array $args, array $message): string
+    private function bookAppointment(array $args, array $message, ?User $ownerUser = null): string
     {
         $date = $args['date'] ?? null;
         $time = $args['time'] ?? null;
@@ -126,13 +167,18 @@ class VapiController extends Controller
                 .'invalides. Créneaux valides : '.implode(', ', self::SLOTS);
         }
 
-        $alreadyTaken = IarecepAppointment::where('date', $date)
+        // Les créneaux déjà pris sont vérifiés PAR CLIENT : deux clients différents
+        // peuvent avoir un RDV sur le même créneau, chacun dans son propre agenda.
+        $slotQuery = IarecepAppointment::where('date', $date)
             ->where('time', $time)
-            ->whereIn('status', ['confirmed', 'confirmed_vapi'])
-            ->exists();
+            ->whereIn('status', ['confirmed', 'confirmed_vapi']);
 
-        if ($alreadyTaken) {
-            Log::info('bookAppointment: créneau déjà pris', compact('date', 'time'));
+        $slotQuery = $ownerUser
+            ? $slotQuery->where('user_id', $ownerUser->id)
+            : $slotQuery->whereNull('user_id');
+
+        if ($slotQuery->exists()) {
+            Log::info('bookAppointment: créneau déjà pris', ['date' => $date, 'time' => $time, 'owner_user_id' => $ownerUser?->id]);
             return "Le créneau du {$date} à {$time} vient d'être pris. Merci de proposer un autre "
                 .'horaire parmi : '.implode(', ', self::SLOTS);
         }
@@ -141,9 +187,10 @@ class VapiController extends Controller
             $vapiTest = $this->vapiSystemTest();
 
             $appointment = IarecepAppointment::create([
+                'user_id' => $ownerUser?->id,
                 'iarecep_test_id' => $vapiTest->id,
                 'token' => $vapiTest->token,
-                'source' => 'vapi',
+                'source' => $ownerUser ? 'vapi_client' : 'vapi',
                 'date' => $date,
                 'time' => $time,
                 'full_name' => $fullName,
@@ -153,7 +200,7 @@ class VapiController extends Controller
                 'status' => 'confirmed_vapi',
             ]);
 
-            Log::info('bookAppointment: RDV créé avec succès', ['id' => $appointment->id]);
+            Log::info('bookAppointment: RDV créé avec succès', ['id' => $appointment->id, 'owner_user_id' => $ownerUser?->id]);
         } catch (\Throwable $e) {
             Log::error('bookAppointment: échec insertion', [
                 'message' => $e->getMessage(),
@@ -163,7 +210,7 @@ class VapiController extends Controller
             return "Désolé, une erreur technique m'empêche de finaliser la réservation. Merci de réessayer.";
         }
 
-        $this->notifyByEmail('Nouveau rendez-vous pris via l\'assistant vocal Vapi', [
+        $notificationData = [
             'Nom du client' => $fullName,
             'Email' => $email,
             'Téléphone' => $phone ?: '—',
@@ -171,7 +218,21 @@ class VapiController extends Controller
             'Heure' => substr($appointment->time, 0, 5),
             'Motif' => $notes ?: '—',
             'ID appel Vapi' => $message['call']['id'] ?? '—',
-        ]);
+        ];
+
+        if ($ownerUser) {
+            // Assistant d'un client IA DIAL : on notifie CE client sur son email de compte.
+            if ($ownerUser->email) {
+                $this->notifyByEmail(
+                    'Nouveau rendez-vous pris via votre assistant IA',
+                    $notificationData + ['Entreprise' => $ownerUser->company_name ?? $ownerUser->name],
+                    $ownerUser->email
+                );
+            }
+        } else {
+            // Assistant "Léa" de la landing IA DIAL : comportement historique.
+            $this->notifyByEmail('Nouveau rendez-vous pris via l\'assistant vocal Vapi', $notificationData);
+        }
 
         return "Rendez-vous confirmé pour {$fullName} le {$date} à {$time}.";
     }
@@ -179,10 +240,7 @@ class VapiController extends Controller
     /**
      * Réservation de TEST : uniquement pour le mode vocal de l'essai gratuit
      * (assistant Vapi éphémère généré par IarecepController::vapiConfig).
-     * Rattache le rendez-vous au bon IarecepTest via le token transmis en
-     * métadonnées, exactement comme le fait le mode texte
-     * (IarecepController::handleBookingTool). N'envoie aucun email et ne
-     * touche jamais au flux client réel de bookAppointment().
+     * Inchangé.
      */
     private function bookAppointmentEssai(array $args, array $message): string
     {
@@ -263,11 +321,21 @@ class VapiController extends Controller
     }
 
     /**
-     * À la fin de chaque appel/chat Vapi, on envoie systématiquement un email
-     * récapitulatif (avec ou sans rendez-vous pris).
+     * À la fin de chaque appel/chat Vapi, on envoie un email récapitulatif
+     * — sauf pour les essais gratuits, qui n'intéressent que le test lui-même.
+     * Pour un assistant CLIENT, le récap part au client, pas à IA DIAL.
      */
     private function handleEndOfCallReport(array $message)
     {
+        $token = $message['call']['metadata']['token']
+            ?? $message['assistant']['metadata']['token']
+            ?? null;
+
+        // Appel d'essai gratuit : aucun récap.
+        if ($token) {
+            return response()->json(['ok' => true]);
+        }
+
         $summary = $message['analysis']['summary'] ?? null;
         $transcriptMessages = $message['artifact']['messages'] ?? [];
         $transcriptText = collect($transcriptMessages)
@@ -277,23 +345,27 @@ class VapiController extends Controller
 
         $customerNumber = $message['call']['customer']['number'] ?? null;
 
-        // On évite d'envoyer un email récapitulatif pour les appels de l'essai
-        // gratuit : ceux-ci n'intéressent pas l'équipe IA DIAL.
-        $token = $message['call']['metadata']['token']
-            ?? $message['assistant']['metadata']['token']
-            ?? null;
-
-        if ($token) {
-            return response()->json(['ok' => true]);
-        }
-
-        $this->notifyByEmail('Nouvelle conversation Vapi terminée', [
+        $data = [
             'Résumé' => $summary ?: 'Non disponible',
             'Téléphone client' => $customerNumber ?: '—',
             'Raison de fin' => $message['endedReason'] ?? '—',
             'ID appel' => $message['call']['id'] ?? '—',
             'Transcript' => $transcriptText ?: 'Non disponible',
-        ]);
+        ];
+
+        $ownerUser = $this->resolveOwnerUser($message);
+
+        if ($ownerUser) {
+            if ($ownerUser->email) {
+                $this->notifyByEmail(
+                    'Nouvelle conversation avec votre assistant IA',
+                    $data + ['Entreprise' => $ownerUser->company_name ?? $ownerUser->name],
+                    $ownerUser->email
+                );
+            }
+        } else {
+            $this->notifyByEmail('Nouvelle conversation Vapi terminée', $data);
+        }
 
         return response()->json(['ok' => true]);
     }
@@ -301,6 +373,8 @@ class VapiController extends Controller
     /**
      * "Client" système représentant l'assistant Vapi de la landing page,
      * pour rattacher proprement les rendez-vous en base sans toucher au schéma.
+     * Utilisé aussi bien pour Léa que pour les assistants clients (le lien
+     * réel avec le client se fait via iarecep_appointments.user_id).
      */
     private function vapiSystemTest(): IarecepTest
     {
@@ -315,16 +389,20 @@ class VapiController extends Controller
         );
     }
 
-    private function notifyByEmail(string $subject, array $data): void
+    /**
+     * Envoie un email de notification. Si $to est omis, part vers l'email
+     * admin global configuré dans services.vapi.notify_email.
+     */
+    private function notifyByEmail(string $subject, array $data, ?string $to = null): void
     {
-        $to = config('services.vapi.notify_email');
+        $recipient = $to ?: config('services.vapi.notify_email');
 
-        if (! $to) {
+        if (! $recipient) {
             return;
         }
 
         try {
-            Mail::to($to)->send(new IarecepVapiNotificationMail($subject, $data));
+            Mail::to($recipient)->send(new IarecepVapiNotificationMail($subject, $data));
         } catch (\Throwable $e) {
             Log::error('Erreur envoi mail Vapi: '.$e->getMessage());
         }

@@ -8,7 +8,7 @@
 
 @section('content')
 
-    {{-- KPI cards --}}
+    {{-- KPI cards — activité --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <div class="flex items-center justify-between">
@@ -47,8 +47,48 @@
         </div>
     </div>
 
+    {{-- KPI cards — business --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <p class="text-slate-500 text-sm">Clients</p>
+                <i class="fa-solid fa-users text-slate-600"></i>
+            </div>
+            <p class="text-3xl font-bold mt-2">{{ $totalClients }}</p>
+            <p class="text-emerald-400 text-xs mt-1">{{ $activeClients }} actifs · {{ $pendingClients }} en attente</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <p class="text-slate-500 text-sm">Revenu total</p>
+                <i class="fa-solid fa-sack-dollar text-slate-600"></i>
+            </div>
+            <p class="text-3xl font-bold mt-2">{{ number_format($totalRevenueEur, 0, ',', ' ') }} €</p>
+            <p class="text-emerald-400 text-xs mt-1">{{ number_format($revenueThisMonthEur, 0, ',', ' ') }} € ce mois-ci</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <p class="text-slate-500 text-sm">Assistants configurés</p>
+                <i class="fa-solid fa-robot text-slate-600"></i>
+            </div>
+            <p class="text-3xl font-bold mt-2">{{ $assistantsConfigured }}</p>
+            <p class="text-amber-400 text-xs mt-1">{{ $assistantsPending }} en attente de shortcode</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <p class="text-slate-500 text-sm">Actions</p>
+                <i class="fa-solid fa-gear text-slate-600"></i>
+            </div>
+            <a href="{{ route('admin.clients') }}" class="mt-2 inline-flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300">
+                Gérer les clients <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+    </div>
+
     {{-- Charts --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h2 class="text-sm font-semibold text-slate-300 mb-4">Visites — 14 derniers jours</h2>
             <canvas id="visitsChart" height="140"></canvas>
@@ -57,10 +97,51 @@
             <h2 class="text-sm font-semibold text-slate-300 mb-4">Essais lancés — 14 derniers jours</h2>
             <canvas id="testsChart" height="140"></canvas>
         </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-sm font-semibold text-slate-300 mb-4">Revenu (€) — 14 derniers jours</h2>
+            <canvas id="revenueChart" height="140"></canvas>
+        </div>
     </div>
 
     {{-- Tables --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 overflow-x-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-sm font-semibold text-slate-300">Derniers clients</h2>
+                <a href="{{ route('admin.clients') }}" class="text-xs text-indigo-400 hover:text-indigo-300">Voir tout →</a>
+            </div>
+            @if($recentClients->isEmpty())
+                <p class="text-slate-500 text-sm">Aucun client pour le moment.</p>
+            @else
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-slate-500 text-left border-b border-slate-800">
+                            <th class="pb-2">Entreprise</th>
+                            <th class="pb-2">Offre</th>
+                            <th class="pb-2">Assistant</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($recentClients as $c)
+                            <tr class="border-b border-slate-800/50">
+                                <td class="py-2">
+                                    <a href="{{ route('admin.clients.edit', $c) }}" class="hover:text-indigo-300">{{ $c->company_name ?? $c->name }}</a>
+                                </td>
+                                <td class="py-2 text-slate-400">{{ $c->plan_label ?? '—' }}</td>
+                                <td class="py-2">
+                                    @if(filled($c->vapi_assistant_id) && filled($c->vapi_public_key))
+                                        <span class="px-2 py-0.5 rounded-full text-xs bg-sky-500/10 text-sky-400">Configuré</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full text-xs bg-slate-700/30 text-slate-400">À faire</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 overflow-x-auto">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-sm font-semibold text-slate-300">Derniers rendez-vous réels</h2>
@@ -89,39 +170,39 @@
                 </table>
             @endif
         </div>
+    </div>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 overflow-x-auto">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-sm font-semibold text-slate-300">Derniers essais</h2>
-                <a href="{{ route('admin.tests') }}" class="text-xs text-indigo-400 hover:text-indigo-300">Voir tout →</a>
-            </div>
-            @if($recentTests->isEmpty())
-                <p class="text-slate-500 text-sm">Aucun essai pour le moment.</p>
-            @else
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-slate-500 text-left border-b border-slate-800">
-                            <th class="pb-2">Entreprise</th>
-                            <th class="pb-2">Mode</th>
-                            <th class="pb-2">Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($recentTests as $t)
-                            <tr class="border-b border-slate-800/50">
-                                <td class="py-2">{{ $t->company_name }}</td>
-                                <td class="py-2 text-slate-400 capitalize">{{ $t->mode ?? 'text' }}</td>
-                                <td class="py-2">
-                                    <span class="px-2 py-0.5 rounded-full text-xs {{ $t->status === 'in_progress' ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-700/30 text-slate-400' }}">
-                                        {{ $t->status === 'in_progress' ? 'En cours' : 'Terminé' }}
-                                    </span>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 overflow-x-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-slate-300">Derniers essais</h2>
+            <a href="{{ route('admin.tests') }}" class="text-xs text-indigo-400 hover:text-indigo-300">Voir tout →</a>
         </div>
+        @if($recentTests->isEmpty())
+            <p class="text-slate-500 text-sm">Aucun essai pour le moment.</p>
+        @else
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-slate-500 text-left border-b border-slate-800">
+                        <th class="pb-2">Entreprise</th>
+                        <th class="pb-2">Mode</th>
+                        <th class="pb-2">Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($recentTests as $t)
+                        <tr class="border-b border-slate-800/50">
+                            <td class="py-2">{{ $t->company_name }}</td>
+                            <td class="py-2 text-slate-400 capitalize">{{ $t->mode ?? 'text' }}</td>
+                            <td class="py-2">
+                                <span class="px-2 py-0.5 rounded-full text-xs {{ $t->status === 'in_progress' ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-700/30 text-slate-400' }}">
+                                    {{ $t->status === 'in_progress' ? 'En cours' : 'Terminé' }}
+                                </span>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
     </div>
 
 @endsection
@@ -160,6 +241,21 @@
                 data: {!! json_encode(array_values($testsChart)) !!},
                 backgroundColor: '#34d399',
                 borderRadius: 4,
+            }],
+        },
+        options: chartOptions,
+    });
+
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: {!! json_encode(array_keys($revenueChart)) !!},
+            datasets: [{
+                data: {!! json_encode(array_values($revenueChart)) !!},
+                borderColor: '#fbbf24',
+                backgroundColor: 'rgba(251,191,36,0.15)',
+                tension: 0.35,
+                fill: true,
             }],
         },
         options: chartOptions,

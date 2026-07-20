@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class IarecepAppointment extends Model
 {
     protected $fillable = [
-        'iarecep_test_id', 'token', 'date', 'time',
-        'full_name', 'phone','email', 'notes','source', 'status',
+        'user_id', 'iarecep_test_id', 'token', 'date', 'time',
+        'full_name', 'phone', 'email', 'notes', 'source', 'status',
     ];
 
     protected $casts = [
@@ -19,5 +19,10 @@ class IarecepAppointment extends Model
     public function test()
     {
         return $this->belongsTo(IarecepTest::class, 'iarecep_test_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

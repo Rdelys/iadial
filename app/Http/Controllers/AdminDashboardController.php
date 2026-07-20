@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 use App\Models\IarecepAppointment;
 use App\Models\IarecepTest;
 use App\Models\IarecepVisit;
+use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -50,6 +52,27 @@ class AdminDashboardController extends Controller
             ? round(($totalTests / $totalVisits) * 100, 1)
             : 0;
 
+        // --- Clients & abonnements ---
+        $totalClients = User::whereNotNull('plan')->count();
+        $activeClients = User::where('subscription_status', 'active')->count();
+        $pendingClients = User::whereNotNull('plan')->where('subscription_status', '!=', 'active')->count();
+        $assistantsConfigured = User::whereNotNull('vapi_assistant_id')->whereNotNull('vapi_public_key')->count();
+        $assistantsPending = $totalClients - $assistantsConfigured;
+
+        $recentClients = User::whereNotNull('plan')
+            ->latest()
+            ->take(8)
+            ->get(['id', 'name', 'company_name', 'email', 'plan_label', 'subscription_status', 'vapi_assistant_id', 'vapi_public_key', 'created_at']);
+
+        // --- Revenus ---
+        $successfulPayments = Payment::where('status', 'success');
+        $totalRevenueEur = (clone $successfulPayments)->sum('amount_eur');
+        $revenueThisMonthEur = (clone $successfulPayments)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->sum('amount_eur');
+        $revenueChart = $this->dailyRevenueSeries($successfulPayments, 14);
+
         // --- Graphique visites (14 derniers jours) ---
         $visitsChart = $this->dailySeries(IarecepVisit::query(), 14);
 
@@ -66,6 +89,9 @@ class AdminDashboardController extends Controller
             'totalTests', 'testsToday', 'testsTexte', 'testsVocal',
             'totalRealAppointments', 'realAppointmentsThisMonth', 'recentRealAppointments',
             'trialAppointments', 'conversionRate',
+            'totalClients', 'activeClients', 'pendingClients',
+            'assistantsConfigured', 'assistantsPending', 'recentClients',
+            'totalRevenueEur', 'revenueThisMonthEur', 'revenueChart',
             'visitsChart', 'testsChart', 'recentTests'
         ));
     }
@@ -91,34 +117,54 @@ class AdminDashboardController extends Controller
         return $series;
     }
 
-   public function appointments()
-{
-    $appointments = IarecepAppointment::where('status', 'confirmed_vapi')
-        ->orderBy('date')
-        ->orderBy('time')
-        ->get([
-            'id', 'full_name', 'phone', 'email', 'notes',
-            'date', 'time', 'source', 'created_at',
-        ])
-        ->map(fn ($a) => [
-            'id'         => $a->id,
-            'full_name'  => $a->full_name,
-            'phone'      => $a->phone,
-            'email'      => $a->email,
-            'notes'      => $a->notes,
-            'date'       => $a->date->format('Y-m-d'),
-            'time'       => substr($a->time, 0, 5),
-            'source'     => $a->source ?? 'vapi',
-            'created_at' => $a->created_at->format('d/m/Y H:i'),
-        ]);
+    /**
+     * Même principe pour les revenus, en sommant amount_eur par jour.
+     */
+    private function dailyRevenueSeries($query, int $days): array
+    {
+        $raw = (clone $query)
+            ->where('created_at', '>=', now()->subDays($days - 1)->startOfDay())
+            ->selectRaw('DATE(created_at) as d, sum(amount_eur) as total')
+            ->groupBy('d')
+            ->pluck('total', 'd');
 
-    return view('admin.appointments', compact('appointments'));
-}
+        $series = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = Carbon::today()->subDays($i)->toDateString();
+            $series[$date] = (float) ($raw[$date] ?? 0);
+        }
 
-public function tests()
-{
-    $tests = IarecepTest::latest()->paginate(15);
+        return $series;
+    }
 
-    return view('admin.tests', compact('tests'));
-}
+    public function appointments()
+    {
+        $appointments = IarecepAppointment::where('status', 'confirmed_vapi')
+            ->orderBy('date')
+            ->orderBy('time')
+            ->get([
+                'id', 'full_name', 'phone', 'email', 'notes',
+                'date', 'time', 'source', 'created_at',
+            ])
+            ->map(fn ($a) => [
+                'id'         => $a->id,
+                'full_name'  => $a->full_name,
+                'phone'      => $a->phone,
+                'email'      => $a->email,
+                'notes'      => $a->notes,
+                'date'       => $a->date->format('Y-m-d'),
+                'time'       => substr($a->time, 0, 5),
+                'source'     => $a->source ?? 'vapi',
+                'created_at' => $a->created_at->format('d/m/Y H:i'),
+            ]);
+
+        return view('admin.appointments', compact('appointments'));
+    }
+
+    public function tests()
+    {
+        $tests = IarecepTest::latest()->paginate(15);
+
+        return view('admin.tests', compact('tests'));
+    }
 }
