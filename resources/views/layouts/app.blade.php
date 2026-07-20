@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -241,6 +241,7 @@
                         <div x-show="profileOpen" x-cloak x-transition
                              class="absolute right-0 mt-2 w-56 rounded-xl border border-white/10 bg-black/95 backdrop-blur-xl shadow-xl py-2">
                             <a href="{{ route('home') }}" class="block px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5">Mon profil</a>
+                            <a href="{{ route('client.recep-ia') }}" class="block px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5">Mon Récep IA</a>
                             <a href="{{ route('iarecep.calendrier') }}" class="block px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5">Mes rendez-vous</a>
                             <div class="border-t border-white/10 my-1"></div>
                             <form action="{{ route('deconnexion') }}" method="POST">
@@ -271,6 +272,8 @@
                 </a>
             @else
                 <a href="{{ route('home') }}" class="block hover:text-white py-1">Mon profil ({{ auth()->user()->plan_label ?? 'Compte' }})</a>
+                <a href="{{ route('client.recep-ia') }}" class="block hover:text-white py-1">Mon Récep IA</a>
+                <a href="{{ route('iarecep.calendrier') }}" class="block hover:text-white py-1">Mes rendez-vous</a>
                 <form action="{{ route('deconnexion') }}" method="POST">
                     @csrf
                     <button type="submit" class="block w-full text-left hover:text-white py-1">Se déconnecter</button>

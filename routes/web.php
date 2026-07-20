@@ -1,14 +1,17 @@
 <?php
 
+use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\AdminClientController;
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ClientAuthController;
+use App\Http\Controllers\ClientReceptionController;
 use App\Http\Controllers\DevisController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IarecepController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PublicBookingController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AdminAuthController;
-use App\Http\Controllers\AdminDashboardController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -26,6 +29,9 @@ Route::get('/calendrier', [IarecepController::class, 'calendrier'])->name('iarec
 Route::get('/tarifs', [HomeController::class, 'tarifs'])->name('tarifs');
 Route::post('/essai-gratuit/vapi-config', [IarecepController::class, 'vapiConfig'])->name('iarecep.vapi.config');
 
+// Page publique de réservation en lecture seule (partagée par un client à ses propres clients)
+Route::get('/r/{slug}', [PublicBookingController::class, 'show'])->name('public.booking');
+
 // Authentification client
 Route::middleware('guest')->group(function () {
     Route::get('/connexion', [ClientAuthController::class, 'showLogin'])->name('connexion');
@@ -34,6 +40,11 @@ Route::middleware('guest')->group(function () {
 Route::post('/deconnexion', [ClientAuthController::class, 'logout'])
     ->middleware('auth')
     ->name('deconnexion');
+
+// Espace client connecté
+Route::middleware('auth')->group(function () {
+    Route::get('/mon-recep-ia', [ClientReceptionController::class, 'show'])->name('client.recep-ia');
+});
 
 // Paiement Papi
 Route::get('/paiement/{plan}', [PaymentController::class, 'checkout'])
@@ -46,6 +57,7 @@ Route::get('/paiement/succes', [PaymentController::class, 'succes'])->name('paie
 Route::get('/paiement/echec', [PaymentController::class, 'echec'])->name('paiement.echec');
 Route::post('/paiement/notification', [PaymentController::class, 'notification'])->name('paiement.notification');
 Route::get('/paiement/statut/{reference}', [PaymentController::class, 'statut'])->name('paiement.statut');
+
 // Devis Business
 Route::get('/devis', [DevisController::class, 'create'])->name('devis.create');
 Route::post('/devis', [DevisController::class, 'store'])->name('devis.store');
@@ -64,5 +76,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/rendez-vous', [AdminDashboardController::class, 'appointments'])->name('appointments');
         Route::get('/essais', [AdminDashboardController::class, 'tests'])->name('tests');
+
+        Route::get('/clients', [AdminClientController::class, 'index'])->name('clients');
+        Route::get('/clients/{user}', [AdminClientController::class, 'edit'])->name('clients.edit');
+        Route::put('/clients/{user}', [AdminClientController::class, 'update'])->name('clients.update');
     });
 });
