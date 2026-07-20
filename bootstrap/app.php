@@ -13,9 +13,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-          $middleware->alias([
-        'admin.auth' => \App\Http\Middleware\EnsureAdminAuthenticated::class,
-    ]);        //
+        $middleware->alias([
+            'admin.auth' => \App\Http\Middleware\EnsureAdminAuthenticated::class,
+        ]);
+
+        // Papi appelle cette route en POST sans token CSRF Laravel.
+        // Sans cette exemption, la requête reçoit une erreur 419 et le webhook échoue silencieusement.
+        $middleware->validateCsrfTokens(except: [
+            'paiement/notification',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

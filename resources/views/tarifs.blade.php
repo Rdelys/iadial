@@ -68,9 +68,9 @@
                 </li>
             </ul>
 
-            <a href="{{ route('iarecep.index') }}"
-               class="btn-shine mt-8 inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5
-                   px-5 py-3 text-sm font-medium text-white hover:bg-white/10 transition">
+            <a href="{{ route('paiement.checkout', 'starter') }}"
+            class="btn-shine mt-8 inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5
+                px-5 py-3 text-sm font-medium text-white hover:bg-white/10 transition">
                 Choisir Starter
             </a>
             <p class="mt-3 text-[11px] text-white/30">Sans engagement</p>
@@ -114,56 +114,37 @@
                 </li>
             </ul>
 
-            <a href="{{ route('iarecep.index') }}"
-               class="btn-shine mt-8 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500
-                   px-5 py-3 text-sm font-semibold text-black shadow-[0_0_20px_rgba(52,226,192,0.35)]
-                   hover:shadow-[0_0_30px_rgba(52,226,192,0.55)] transition-shadow">
+            <a href="{{ route('paiement.checkout', 'pro') }}"
+            class="btn-shine mt-8 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-500
+                px-5 py-3 text-sm font-semibold text-black shadow-[0_0_20px_rgba(52,226,192,0.35)]
+                hover:shadow-[0_0_30px_rgba(52,226,192,0.55)] transition-shadow">
                 Choisir Pro
             </a>
             <p class="mt-3 text-[11px] text-white/30">Sans engagement</p>
         </div>
 
-        {{-- BUSINESS --}}
+        {{-- BUSINESS : prix retiré, devis --}}
         <div class="reveal card-hover relative flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-8">
             <h3 class="font-display text-xl font-semibold">IADial Business</h3>
             <p class="text-white/40 text-sm mt-1">Pour une présence complète</p>
 
-            <div class="mt-6 flex items-baseline gap-1">
-                <span class="font-display text-4xl font-bold">999&nbsp;€</span>
-                <span class="text-white/40 text-sm">/mois</span>
+            <div class="mt-6">
+                <span class="font-display text-3xl font-bold">Sur devis</span>
             </div>
             <p class="mt-2 font-mono text-[11px] text-sky-400/70">Appels illimités</p>
 
             <ul class="mt-8 space-y-3 text-sm text-white/70 flex-1">
-                <li class="flex items-start gap-2.5">
-                    <x-tarif-check />
-                    Répondeur IA 24h/24, 7j/7
-                </li>
-                <li class="flex items-start gap-2.5">
-                    <x-tarif-check />
-                    Prise de RDV automatique (Google Agenda)
-                </li>
-                <li class="flex items-start gap-2.5">
-                    <x-tarif-check />
-                    Accueil et échange par chat
-                </li>
-                <li class="flex items-start gap-2.5">
-                    <x-tarif-check />
-                    Transfert d'urgence
-                </li>
-                <li class="flex items-start gap-2.5">
-                    <x-tarif-check />
-                    Site vitrine + galerie + avis <span class="text-white/40">(livré sous 96h)</span>
-                </li>
-                <li class="flex items-start gap-2.5">
-                    <x-tarif-check />
-                    Fonctionnalités sur devis
-                </li>
+                <li class="flex items-start gap-2.5"><x-tarif-check />Répondeur IA 24h/24, 7j/7</li>
+                <li class="flex items-start gap-2.5"><x-tarif-check />Prise de RDV automatique (Google Agenda)</li>
+                <li class="flex items-start gap-2.5"><x-tarif-check />Accueil et échange par chat</li>
+                <li class="flex items-start gap-2.5"><x-tarif-check />Transfert d'urgence</li>
+                <li class="flex items-start gap-2.5"><x-tarif-check />Site sur mesure (vitrine, galerie, avis, e-commerce…)</li>
+                <li class="flex items-start gap-2.5"><x-tarif-check />Fonctionnalités choisies par vous</li>
             </ul>
 
-            <a href="#contact"
-               class="btn-shine mt-8 inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5
-                   px-5 py-3 text-sm font-medium text-white hover:bg-white/10 transition">
+            <a href="{{ route('devis.create') }}"
+            class="btn-shine mt-8 inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5
+                px-5 py-3 text-sm font-medium text-white hover:bg-white/10 transition">
                 Demander un devis
             </a>
             <p class="mt-3 text-[11px] text-white/30">Sans engagement</p>
