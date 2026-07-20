@@ -202,15 +202,20 @@ class PaymentController extends Controller
 
         $payload = $request->validate([
             'paymentStatus' => 'required|string',
-            'paymentReference' => 'required|string',
+            'merchantPaymentReference' => 'required|string',
+            'paymentReference' => 'nullable|string',
             'notificationToken' => 'required|string',
             'paymentMethod' => 'nullable|string',
         ]);
 
-        $payment = Payment::where('reference', $payload['paymentReference'])->first();
+        // "merchantPaymentReference" = notre référence (Payment::reference).
+        // "paymentReference" = l'identifiant interne généré par Papi (à ne pas confondre).
+        $payment = Payment::where('reference', $payload['merchantPaymentReference'])->first();
 
         if (!$payment) {
-            Log::warning('Papi: notification reçue pour une référence inconnue', $payload);
+            Log::warning('Papi: notification reçue pour une référence inconnue', [
+                'merchantPaymentReference' => $payload['merchantPaymentReference'],
+            ]);
             return response()->json(['message' => 'Référence inconnue.'], 422);
         }
 
