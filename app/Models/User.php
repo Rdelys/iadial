@@ -81,6 +81,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Prix mensuel (en euros) associé à la colonne `plan` de ce client,
+     * basé sur config/plans.php. Retourne null pour les offres sur devis
+     * (ex: "business") ou un plan inconnu/absent.
+     */
+    public function planPriceEur(): ?float
+    {
+        if (! $this->plan) {
+            return null;
+        }
+
+        $price = config("plans.{$this->plan}.amount_eur");
+
+        return $price !== null ? (float) $price : null;
+    }
+
+    /**
      * Génère (si nécessaire) et retourne le slug public de réservation.
      */
     public function bookingSlug(): string

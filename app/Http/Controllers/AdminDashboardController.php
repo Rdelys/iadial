@@ -62,9 +62,14 @@ class AdminDashboardController extends Controller
         $recentClients = User::whereNotNull('plan')
             ->latest()
             ->take(8)
-            ->get(['id', 'name', 'company_name', 'email', 'plan_label', 'subscription_status', 'vapi_assistant_id', 'vapi_public_key', 'created_at']);
+            ->get(['id', 'name', 'company_name', 'email', 'plan', 'plan_label', 'subscription_status', 'vapi_assistant_id', 'vapi_public_key', 'created_at']);
 
-        // --- Revenus ---
+        // --- Revenu récurrent mensuel (MRR), calculé à partir de la colonne
+        // `plan` des clients ACTIFS, avec les prix de config/plans.php.
+        // C'est le chiffre "vérité terrain" indépendant de la table payments.
+        [$mrrEur, $planBreakdown] = $this->calculateMrr();
+
+        // --- Revenu encaissé (historique réel, basé sur les paiements confirmés) ---
         $successfulPayments = Payment::where('status', 'success');
         $totalRevenueEur = (clone $successfulPayments)->sum('amount_eur');
         $revenueThisMonthEur = (clone $successfulPayments)
@@ -91,9 +96,54 @@ class AdminDashboardController extends Controller
             'trialAppointments', 'conversionRate',
             'totalClients', 'activeClients', 'pendingClients',
             'assistantsConfigured', 'assistantsPending', 'recentClients',
+            'mrrEur', 'planBreakdown',
             'totalRevenueEur', 'revenueThisMonthEur', 'revenueChart',
             'visitsChart', 'testsChart', 'recentTests'
         ));
+    }
+
+    /**
+     * Calcule le MRR (revenu récurrent mensuel) à partir des clients au
+     * statut "active", en multipliant le nombre de clients par plan par
+     * le prix défini dans config/plans.php.
+     *
+     * Retourne [mrrTotal (float), breakdown (array de ['plan_key' => [...]])]
+     */
+    private function calculateMrr(): array
+    {
+        $plansConfig = config('plans', []);
+
+        $counts = User::where('subscription_status', 'active')
+            ->whereNotNull('plan')
+            ->select('plan', DB::raw('count(*) as total'))
+            ->groupBy('plan')
+            ->pluck('total', 'plan');
+
+        $mrrTotal = 0.0;
+        $breakdown = [];
+
+        foreach ($counts as $planKey => $count) {
+            $unitPrice = (float) ($plansConfig[$planKey]['amount_eur'] ?? 0);
+            $label = $plansConfig[$planKey]['label'] ?? ucfirst($planKey);
+            $subtotal = $unitPrice * $count;
+            $mrrTotal += $subtotal;
+
+            $breakdown[] = [
+                'plan' => $planKey,
+                'label' => $label,
+                'count' => (int) $count,
+                'unit_price' => $unitPrice,
+                'subtotal' => $subtotal,
+            ];
+        }
+
+        // Les plans sur devis (ex: business) n'ont pas de prix fixe dans
+        // config/plans.php : on les affiche quand même dans le tableau,
+        // avec un prix à 0, pour que l'admin sache qu'il faut vérifier
+        // manuellement leur facturation.
+        usort($breakdown, fn ($a, $b) => $b['subtotal'] <=> $a['subtotal']);
+
+        return [$mrrTotal, $breakdown];
     }
 
     /**

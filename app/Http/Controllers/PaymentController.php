@@ -18,10 +18,12 @@ class PaymentController extends Controller
     /**
      * Tarifs affichés et facturés au client, en euros.
      */
-    protected array $plans = [
-        'starter' => ['label' => 'IADial Starter', 'amount_eur' => 399],
-        'pro'     => ['label' => 'IADial Pro',     'amount_eur' => 599],
-    ];
+    protected array $plans;
+
+    public function __construct()
+    {
+        $this->plans = config('plans');
+    }
 
     public function checkout(string $plan)
     {

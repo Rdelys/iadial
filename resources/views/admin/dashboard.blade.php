@@ -60,7 +60,16 @@
 
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <div class="flex items-center justify-between">
-                <p class="text-slate-500 text-sm">Revenu total</p>
+                <p class="text-slate-500 text-sm">MRR (basé sur plan actif)</p>
+                <i class="fa-solid fa-arrows-rotate text-slate-600"></i>
+            </div>
+            <p class="text-3xl font-bold mt-2">{{ number_format($mrrEur, 0, ',', ' ') }} €<span class="text-sm text-slate-500 font-normal">/mois</span></p>
+            <p class="text-sky-400 text-xs mt-1">Calculé sur {{ $activeClients }} client(s) actif(s)</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+                <p class="text-slate-500 text-sm">Revenu encaissé (total)</p>
                 <i class="fa-solid fa-sack-dollar text-slate-600"></i>
             </div>
             <p class="text-3xl font-bold mt-2">{{ number_format($totalRevenueEur, 0, ',', ' ') }} €</p>
@@ -75,16 +84,50 @@
             <p class="text-3xl font-bold mt-2">{{ $assistantsConfigured }}</p>
             <p class="text-amber-400 text-xs mt-1">{{ $assistantsPending }} en attente de shortcode</p>
         </div>
+    </div>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-                <p class="text-slate-500 text-sm">Actions</p>
-                <i class="fa-solid fa-gear text-slate-600"></i>
-            </div>
-            <a href="{{ route('admin.clients') }}" class="mt-2 inline-flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300">
-                Gérer les clients <i class="fa-solid fa-arrow-right text-xs"></i>
-            </a>
+    {{-- Répartition MRR par plan --}}
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-slate-300">Répartition du MRR par offre</h2>
+            <a href="{{ route('admin.clients') }}" class="text-xs text-indigo-400 hover:text-indigo-300">Gérer les clients →</a>
         </div>
+        @if(empty($planBreakdown))
+            <p class="text-slate-500 text-sm">Aucun client actif pour le moment.</p>
+        @else
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-slate-500 text-left border-b border-slate-800">
+                        <th class="pb-2">Offre</th>
+                        <th class="pb-2 text-center">Clients actifs</th>
+                        <th class="pb-2 text-right">Prix unitaire</th>
+                        <th class="pb-2 text-right">Sous-total / mois</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($planBreakdown as $row)
+                        <tr class="border-b border-slate-800/50">
+                            <td class="py-2 font-medium">{{ $row['label'] }}</td>
+                            <td class="py-2 text-center text-slate-400">{{ $row['count'] }}</td>
+                            <td class="py-2 text-right text-slate-400">
+                                @if($row['unit_price'] > 0)
+                                    {{ number_format($row['unit_price'], 0, ',', ' ') }} €
+                                @else
+                                    <span class="text-amber-400">sur devis</span>
+                                @endif
+                            </td>
+                            <td class="py-2 text-right font-mono">{{ number_format($row['subtotal'], 0, ',', ' ') }} €</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="pt-3 text-right text-slate-400 text-xs">Total MRR</td>
+                        <td class="pt-3 text-right font-bold font-mono">{{ number_format($mrrEur, 0, ',', ' ') }} €</td>
+                    </tr>
+                </tfoot>
+            </table>
+        @endif
     </div>
 
     {{-- Charts --}}
@@ -98,7 +141,7 @@
             <canvas id="testsChart" height="140"></canvas>
         </div>
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-sm font-semibold text-slate-300 mb-4">Revenu (€) — 14 derniers jours</h2>
+            <h2 class="text-sm font-semibold text-slate-300 mb-4">Revenu encaissé (€) — 14 derniers jours</h2>
             <canvas id="revenueChart" height="140"></canvas>
         </div>
     </div>
