@@ -9,15 +9,15 @@
     <div class="reveal-group space-y-8 text-white/60">
         <div class="reveal">
             <h2 class="font-display text-lg font-semibold text-white mb-2">1. Éditeur du site</h2>
-            <p>Le site IADial est édité par [Raison sociale à compléter], société immatriculée à [lieu d'immatriculation], dont le siège social est situé à Antananarivo, Madagascar. Adresse e-mail de contact : contact@iadial.mg.</p>
+            <p>Le site IADial est édité par FDK (Fast Data Keys), société immatriculée au Registre du Commerce et des Sociétés sous le numéro RCS 2012A01158, NIF 5000964754, STAT 72302 11 2012 0 04025, dont le siège social est situé Lot IV W 18 Anosizato Est II, Antananarivo 101, Madagascar. Téléphone : +261 34 89 754 62. Adresse e-mail de contact : contact@iadial.mg.</p>
         </div>
         <div class="reveal">
             <h2 class="font-display text-lg font-semibold text-white mb-2">2. Hébergement</h2>
-            <p>Le site est hébergé par [Nom de l'hébergeur à compléter]. L'application et les données clients sont hébergées conformément aux exigences de sécurité en vigueur.</p>
+            <p>Le site est hébergé par OVH, France. L'application et les données clients sont hébergées conformément aux exigences de sécurité en vigueur.</p>
         </div>
         <div class="reveal">
             <h2 class="font-display text-lg font-semibold text-white mb-2">3. Propriété intellectuelle</h2>
-            <p>L'ensemble des contenus présents sur le site IADial (textes, logos, graphismes, icônes) sont la propriété exclusive d'IADial, sauf mention contraire, et ne peuvent être reproduits sans autorisation préalable.</p>
+            <p>L'ensemble des contenus présents sur le site IADial (textes, logos, graphismes, icônes) sont la propriété exclusive de FDK (Fast Data Keys), sauf mention contraire, et ne peuvent être reproduits sans autorisation préalable.</p>
         </div>
         <div class="reveal">
             <h2 class="font-display text-lg font-semibold text-white mb-2">4. Protection des données personnelles</h2>
