@@ -42,6 +42,12 @@
             Vous pouvez dès maintenant accéder à votre espace pour suivre l'état de votre compte.
         </p>
 
+        <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;padding:14px 16px;margin:20px 0;">
+            <p style="color:#065F46;font-size:14px;line-height:1.6;margin:0;">
+                🕒 <strong>Votre réceptionniste IA sera activé sous 24h</strong> après confirmation de votre paiement. Vous recevrez une notification dès qu'il sera opérationnel et prêt à répondre à vos clients.
+            </p>
+        </div>
+
         <div style="text-align:center;margin:28px 0;">
             <a href="{{ $loginUrl }}"
                style="display:inline-block;background:#0EA5A0;color:#ffffff;text-decoration:none;
